@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — FitForge</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="styles/globals.css" />
+  <link rel="stylesheet" href="styles/dashboard.css" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Supabase -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- ========== SIDEBAR OVERLAY (mobile) ========== -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="sidebar glass" id="sidebar">
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <span class="sidebar-logo-icon">🏋️</span>
+      <span class="sidebar-logo-text">Fit<span class="text-gradient">Forge</span></span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item active" data-page="dashboard">
+        <i data-lucide="layout-dashboard"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="#workouts" class="nav-item" data-page="workouts">
+        <i data-lucide="dumbbell"></i>
+        <span>Workouts</span>
+      </a>
+      <a href="#diet" class="nav-item" data-page="diet">
+        <i data-lucide="utensils-crossed"></i>
+        <span>Diet Plans</span>
+      </a>
+      <a href="#streaks" class="nav-item" data-page="streaks">
+        <i data-lucide="flame"></i>
+        <span>Streaks</span>
+      </a>
+      <a href="#progress" class="nav-item" data-page="progress">
+        <i data-lucide="trending-up"></i>
+        <span>Progress</span>
+      </a>
+      <a href="#leaderboard" class="nav-item" data-page="leaderboard">
+        <i data-lucide="trophy"></i>
+        <span>Leaderboard</span>
+      </a>
+    </nav>
+
+    <div class="divider"></div>
+
+    <!-- Profile Section -->
+    <div class="sidebar-profile">
+      <div class="avatar" id="sidebarAvatar">
+        <span id="sidebarAvatarLetter">A</span>
+      </div>
+      <div class="sidebar-profile-info">
+        <span class="sidebar-profile-name" id="sidebarProfileName">Alex Johnson</span>
+        <span class="sidebar-profile-role">Pro Member</span>
+      </div>
+      <button class="btn-icon btn-ghost sidebar-settings" data-tooltip="Settings">
+        <i data-lucide="settings"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ========== MAIN CONTENT ========== -->
+  <main class="dashboard-main" id="dashboardMain">
+
+    <!-- Mobile Top Bar -->
+    <div class="mobile-header">
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open menu">
+        <i data-lucide="menu"></i>
+      </button>
+      <span class="mobile-logo">🏋️ Fit<span class="text-gradient">Forge</span></span>
+      <button class="btn-icon btn-ghost" data-tooltip="Notifications">
+        <i data-lucide="bell"></i>
+        <span class="notification-dot"></span>
+      </button>
+    </div>
+
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2 class="topbar-greeting" id="greeting">Good Evening, <span class="text-gradient" id="greetingName">Alex</span> 👋</h2>
+        <p class="topbar-date text-muted" id="topbarDate">Thursday, June 18, 2026</p>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-icon btn-ghost topbar-notification" data-tooltip="Notifications" id="notificationBtn">
+          <i data-lucide="bell"></i>
+          <span class="notification-dot"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ===== STATS ROW ===== -->
+    <section class="stats-row grid grid-4 animate-fade-in-up">
+      <!-- Current Streak -->
+      <div class="stat-card stat-card-animated" data-delay="0">
+        <div class="stat-icon stat-icon-fire">
+          <i data-lucide="flame"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">
+            <span class="counter" data-target="12" id="statStreak">0</span>
+          </div>
+          <div class="stat-label">day streak 🔥</div>
+        </div>
+        <div class="stat-sparkle stat-sparkle-fire"></div>
+      </div>
+
+      <!-- Workouts This Week -->
+      <div class="stat-card stat-card-animated" data-delay="1">
+        <div class="stat-icon stat-icon-workout">
+          <i data-lucide="dumbbell"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">
+            <span class="counter" data-target="4" id="statWorkouts">0</span><span class="stat-unit">/7</span>
+          </div>
+          <div class="stat-label">workouts completed 💪</div>
+        </div>
+        <div class="stat-sparkle stat-sparkle-workout"></div>
+      </div>
+
+      <!-- Calories Burned -->
+      <div class="stat-card stat-card-animated" data-delay="2">
+        <div class="stat-icon stat-icon-calories">
+          <i data-lucide="zap"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">
+            <span class="counter" data-target="1847" id="statCalories">0</span>
+          </div>
+          <div class="stat-label">kcal burned today ⚡</div>
+        </div>
+        <div class="stat-sparkle stat-sparkle-calories"></div>
+      </div>
+
+      <!-- BMI Score -->
+      <div class="stat-card stat-card-animated" data-delay="3">
+        <div class="stat-icon stat-icon-bmi">
+          <i data-lucide="activity"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">
+            <span class="counter" data-target="23.5" data-decimals="1" id="statBMI">0</span>
+          </div>
+          <div class="stat-label">BMI <span class="badge badge-success">Normal</span></div>
+        </div>
+        <div class="stat-sparkle stat-sparkle-bmi"></div>
+      </div>
+    </section>
+
+    <!-- ===== TWO-COLUMN LAYOUT ===== -->
+    <section class="dashboard-grid">
+
+      <!-- Left Column (wider) -->
+      <div class="dashboard-col-left">
+
+        <!-- Today's Workout -->
+        <div class="card-static workout-card animate-fade-in-up delay-2">
+          <div class="card-header">
+            <h4>🎯 Today's Workout</h4>
+            <span class="badge badge-purple">Suggested</span>
+          </div>
+
+          <div class="workout-details" id="workoutDetails">
+            <div class="workout-title-row">
+              <h3 class="workout-name" id="workoutName">Full Body Strength</h3>
+              <span class="badge badge-warning" id="workoutDifficulty">Intermediate</span>
+            </div>
+
+            <div class="workout-meta">
+              <div class="workout-meta-item">
+                <i data-lucide="clock"></i>
+                <span id="workoutDuration">45 min</span>
+              </div>
+              <div class="workout-meta-item">
+                <i data-lucide="flame"></i>
+                <span id="workoutCalories">~380 cal</span>
+              </div>
+              <div class="workout-meta-item">
+                <i data-lucide="target"></i>
+                <span>6 exercises</span>
+              </div>
+            </div>
+
+            <div class="workout-muscles" id="workoutMuscles">
+              <span class="chip">Chest</span>
+              <span class="chip">Back</span>
+              <span class="chip">Legs</span>
+              <span class="chip">Core</span>
+              <span class="chip">Shoulders</span>
+            </div>
+
+            <button class="btn btn-primary btn-lg workout-start-btn" id="startWorkoutBtn">
+              <i data-lucide="play"></i>
+              Start Workout
+            </button>
+          </div>
+        </div>
+
+        <!-- Weekly Activity Chart -->
+        <div class="card-static chart-card animate-fade-in-up delay-3">
+          <div class="card-header">
+            <h4>📊 Weekly Activity</h4>
+            <span class="text-muted" style="font-size: var(--text-sm);">This Week</span>
+          </div>
+
+          <div class="chart-container" id="weeklyChart">
+            <div class="chart-bar-group" data-day="Mon">
+              <div class="chart-bar-wrapper">
+                <span class="chart-bar-value">1</span>
+                <div class="chart-bar" data-value="45" style="--bar-height: 45%;">
+                  <div class="chart-bar-fill"></div>
+                </div>
+              </div>
+              <span class="chart-bar-label">Mon</span>
+            </div>
+            <div class="chart-bar-group" data-day="Tue">
+              <div class="chart-bar-wrapper">
+                <span class="chart-bar-value">2</span>
+                <div class="chart-bar" data-value="70" style="--bar-height: 70%;">
+                  <div class="chart-bar-fill"></div>
+                </div>
+              </div>
+              <span class="chart-bar-label">Tue</span>
+            </div>
+            <div class="chart-bar-group" data-day="Wed">
+              <div class="chart-bar-wrapper">
+                <span class="chart-bar-value">0</span>
+                <div class="chart-bar" data-value="0" style="--bar-height: 3%;">
+                  <div class="chart-bar-fill chart-bar-empty"></div>
+                </div>
+              </div>
+              <span class="chart-bar-label">Wed</span>
+            </div>
+            <div class="chart-bar-group" data-day="Thu" class="chart-today">
+              <div class="chart-bar-wrapper">
+                <span class="chart-bar-value">1</span>
+                <div class="chart-bar chart-bar-today" data-value="55" style="--bar-height: 55%;">
+                  <div class="chart-bar-fill"></div>
+                </div>
+              </div>
+              <span class="chart-bar-label chart-label-today">Thu</span>
+            </div>
+            <div class="chart-bar-group" data-day="Fri">
+              <div class="chart-bar-wrapper">
+                <span class="chart-bar-value">—</span>
+                <div class="chart-bar" data-value="0" style="--bar-height: 3%;">
+                  <div class="chart-bar-fill chart-bar-future"></div>
+                </div>
+              </div>
+              <span class="chart-bar-label">Fri</span>
+            </div>
+            <div class="chart-bar-group" data-day="Sat">
+              <div class="chart-bar-wrapper">
+                <span class="chart-bar-value">—</span>
+                <div class="chart-bar" data-value="0" style="--bar-height: 3%;">
+                  <div class="chart-bar-fill chart-bar-future"></div>
+                </div>
+              </div>
+              <span class="chart-bar-label">Sat</span>
+            </div>
+            <div class="chart-bar-group" data-day="Sun">
+              <div class="chart-bar-wrapper">
+                <span class="chart-bar-value">—</span>
+                <div class="chart-bar" data-value="0" style="--bar-height: 3%;">
+                  <div class="chart-bar-fill chart-bar-future"></div>
+                </div>
+              </div>
+              <span class="chart-bar-label">Sun</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column -->
+      <div class="dashboard-col-right">
+
+        <!-- Today's Meals -->
+        <div class="card-static meals-card animate-fade-in-up delay-2">
+          <div class="card-header">
+            <h4>🍽️ Today's Meals</h4>
+            <span class="text-muted" style="font-size: var(--text-sm);" id="totalCalLabel">1,620 / 2,200 kcal</span>
+          </div>
+
+          <div class="meals-list" id="mealsList">
+            <!-- Breakfast -->
+            <div class="meal-item meal-logged">
+              <div class="meal-icon meal-icon-breakfast">🌅</div>
+              <div class="meal-info">
+                <span class="meal-name">Oatmeal & Berries</span>
+                <span class="meal-cal">420 kcal</span>
+              </div>
+              <div class="meal-check">
+                <i data-lucide="check-circle-2"></i>
+              </div>
+            </div>
+            <!-- Lunch -->
+            <div class="meal-item meal-logged">
+              <div class="meal-icon meal-icon-lunch">☀️</div>
+              <div class="meal-info">
+                <span class="meal-name">Grilled Chicken Salad</span>
+                <span class="meal-cal">580 kcal</span>
+              </div>
+              <div class="meal-check">
+                <i data-lucide="check-circle-2"></i>
+              </div>
+            </div>
+            <!-- Snack -->
+            <div class="meal-item meal-logged">
+              <div class="meal-icon meal-icon-snack">🍎</div>
+              <div class="meal-info">
+                <span class="meal-name">Protein Shake + Nuts</span>
+                <span class="meal-cal">320 kcal</span>
+              </div>
+              <div class="meal-check">
+                <i data-lucide="check-circle-2"></i>
+              </div>
+            </div>
+            <!-- Dinner -->
+            <div class="meal-item meal-pending">
+              <div class="meal-icon meal-icon-dinner">🌙</div>
+              <div class="meal-info">
+                <span class="meal-name">Not yet logged</span>
+                <span class="meal-cal">— kcal</span>
+              </div>
+              <div class="meal-check meal-check-pending">
+                <i data-lucide="circle-dashed"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Calorie Progress -->
+          <div class="calorie-progress">
+            <div class="calorie-progress-header">
+              <span class="text-muted" style="font-size: var(--text-xs);">Daily Target</span>
+              <span class="calorie-progress-pct" id="caloriePct">74%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-bar-fill" id="calorieBar" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Badges -->
+        <div class="card-static badges-card animate-fade-in-up delay-3">
+          <div class="card-header">
+            <h4>🏅 Recent Badges</h4>
+            <a href="#" class="text-muted" style="font-size: var(--text-sm);">View All</a>
+          </div>
+
+          <div class="badges-grid" id="badgesGrid">
+            <div class="badge-item">
+              <div class="badge-icon badge-icon-streak">🔥</div>
+              <span class="badge-name">7-Day Streak</span>
+              <span class="badge-date">2 days ago</span>
+            </div>
+            <div class="badge-item">
+              <div class="badge-icon badge-icon-first">💪</div>
+              <span class="badge-name">First Workout</span>
+              <span class="badge-date">1 week ago</span>
+            </div>
+            <div class="badge-item">
+              <div class="badge-icon badge-icon-diet">🥗</div>
+              <span class="badge-name">Diet Master</span>
+              <span class="badge-date">3 days ago</span>
+            </div>
+            <div class="badge-item">
+              <div class="badge-icon badge-icon-early">⚡</div>
+              <span class="badge-name">Early Bird</span>
+              <span class="badge-date">5 days ago</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========== QUICK ACTIONS FAB ========== -->
+  <div class="fab-container" id="fabContainer">
+    <div class="fab-actions" id="fabActions">
+      <button class="fab-action" data-tooltip="Log Workout" id="fabLogWorkout">
+        <i data-lucide="dumbbell"></i>
+        <span>Log Workout</span>
+      </button>
+      <button class="fab-action" data-tooltip="Log Meal" id="fabLogMeal">
+        <i data-lucide="utensils-crossed"></i>
+        <span>Log Meal</span>
+      </button>
+      <button class="fab-action" data-tooltip="Log Weight" id="fabLogWeight">
+        <i data-lucide="scale"></i>
+        <span>Log Weight</span>
+      </button>
+    </div>
+    <button class="fab-btn" id="fabBtn" aria-label="Quick Actions">
+      <i data-lucide="plus" class="fab-icon-plus"></i>
+      <i data-lucide="x" class="fab-icon-close"></i>
+    </button>
+  </div>
+
+  <!-- Dashboard JS -->
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

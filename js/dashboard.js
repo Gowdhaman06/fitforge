@@ -1,0 +1,331 @@
+// ============================================
+// FitForge — Dashboard Logic (ES Module)
+// ============================================
+
+// ---- Imports (gracefully handle missing modules) ----
+let supabase = null;
+let showToast = null;
+
+try {
+  const sbModule = await import('./supabase.js');
+  supabase = sbModule.supabase || sbModule.default;
+} catch {
+  console.warn('[FitForge] supabase.js not found — running in demo mode.');
+}
+
+try {
+  const appModule = await import('./app.js');
+  showToast = appModule.showToast;
+} catch {
+  console.warn('[FitForge] app.js not found — toast disabled.');
+}
+
+// ---- DOM Ready ----
+document.addEventListener('DOMContentLoaded', () => {
+  initDashboard();
+});
+
+// Also run immediately if DOM is already loaded
+if (document.readyState !== 'loading') {
+  initDashboard();
+}
+
+let _initialized = false;
+
+function initDashboard() {
+  if (_initialized) return;
+  _initialized = true;
+
+  checkAuth();
+  setGreeting();
+  setCurrentDate();
+  animateCounters();
+  animateChartBars();
+  animateCalorieBar();
+  setupFAB();
+  setupSidebar();
+  setupNavHighlight();
+  initLucide();
+}
+
+// ---- Initialize Lucide Icons ----
+function initLucide() {
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
+}
+
+// ---- Auth Check ----
+async function checkAuth() {
+  if (!supabase) {
+    // Demo mode — populate mock profile
+    populateMockProfile();
+    return;
+  }
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      window.location.href = 'login.html';
+      return;
+    }
+    populateUserProfile(session.user);
+  } catch (err) {
+    console.error('[FitForge] Auth check failed:', err);
+    populateMockProfile();
+  }
+}
+
+// ---- Profile Data ----
+function populateUserProfile(user) {
+  const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+  const firstName = name.split(' ')[0];
+  setProfileUI(name, firstName);
+}
+
+function populateMockProfile() {
+  setProfileUI('Alex Johnson', 'Alex');
+}
+
+function setProfileUI(fullName, firstName) {
+  const greetingName = document.getElementById('greetingName');
+  const sidebarName = document.getElementById('sidebarProfileName');
+  const sidebarLetter = document.getElementById('sidebarAvatarLetter');
+
+  if (greetingName) greetingName.textContent = firstName;
+  if (sidebarName) sidebarName.textContent = fullName;
+  if (sidebarLetter) sidebarLetter.textContent = firstName.charAt(0).toUpperCase();
+}
+
+// ---- Time-based Greeting ----
+function setGreeting() {
+  const hour = new Date().getHours();
+  let greeting = 'Good Evening';
+  let emoji = '🌙';
+
+  if (hour >= 5 && hour < 12) {
+    greeting = 'Good Morning';
+    emoji = '☀️';
+  } else if (hour >= 12 && hour < 17) {
+    greeting = 'Good Afternoon';
+    emoji = '🌤️';
+  } else if (hour >= 17 && hour < 21) {
+    greeting = 'Good Evening';
+    emoji = '🌆';
+  } else {
+    greeting = 'Good Night';
+    emoji = '🌙';
+  }
+
+  const greetingEl = document.getElementById('greeting');
+  if (greetingEl) {
+    const nameSpan = document.getElementById('greetingName');
+    const name = nameSpan ? nameSpan.textContent : 'Alex';
+    greetingEl.innerHTML = `${greeting}, <span class="text-gradient" id="greetingName">${name}</span> ${emoji}`;
+  }
+}
+
+// ---- Current Date ----
+function setCurrentDate() {
+  const dateEl = document.getElementById('topbarDate');
+  if (!dateEl) return;
+
+  const now = new Date();
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  dateEl.textContent = now.toLocaleDateString('en-US', options);
+}
+
+// ---- Animate Stat Counters ----
+function animateCounters() {
+  const counters = document.querySelectorAll('.counter[data-target]');
+  const duration = 1800;
+
+  counters.forEach((counter) => {
+    const target = parseFloat(counter.dataset.target);
+    const decimals = parseInt(counter.dataset.decimals || '0', 10);
+    const start = 0;
+    const startTime = performance.now();
+
+    function update(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // Ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = start + (target - start) * eased;
+
+      if (decimals > 0) {
+        counter.textContent = current.toFixed(decimals);
+      } else {
+        counter.textContent = Math.round(current).toLocaleString();
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      } else {
+        // Final value
+        if (decimals > 0) {
+          counter.textContent = target.toFixed(decimals);
+        } else {
+          counter.textContent = target.toLocaleString();
+        }
+      }
+    }
+
+    // Stagger start based on card delay
+    const card = counter.closest('.stat-card-animated');
+    const delay = card ? parseInt(card.dataset.delay || '0', 10) * 150 : 0;
+
+    setTimeout(() => {
+      requestAnimationFrame(update);
+    }, delay + 400);
+  });
+}
+
+// ---- Animate Chart Bars ----
+function animateChartBars() {
+  const chart = document.getElementById('weeklyChart');
+  if (!chart) return;
+
+  // Start with minimal height, then animate to target
+  setTimeout(() => {
+    chart.classList.add('chart-animated');
+  }, 800);
+}
+
+// ---- Animate Calorie Progress Bar ----
+function animateCalorieBar() {
+  const bar = document.getElementById('calorieBar');
+  if (!bar) return;
+
+  setTimeout(() => {
+    bar.style.width = '74%';
+  }, 1200);
+}
+
+// ---- FAB Toggle ----
+function setupFAB() {
+  const fabBtn = document.getElementById('fabBtn');
+  const fabContainer = document.getElementById('fabContainer');
+
+  if (!fabBtn || !fabContainer) return;
+
+  fabBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    fabContainer.classList.toggle('open');
+  });
+
+  // Close FAB when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!fabContainer.contains(e.target)) {
+      fabContainer.classList.remove('open');
+    }
+  });
+
+  // Close on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      fabContainer.classList.remove('open');
+    }
+  });
+
+  // FAB action handlers
+  const fabLogWorkout = document.getElementById('fabLogWorkout');
+  const fabLogMeal = document.getElementById('fabLogMeal');
+  const fabLogWeight = document.getElementById('fabLogWeight');
+
+  if (fabLogWorkout) {
+    fabLogWorkout.addEventListener('click', () => {
+      fabContainer.classList.remove('open');
+      if (showToast) showToast('Log Workout coming soon!', 'info');
+      else alert('Log Workout — coming soon!');
+    });
+  }
+  if (fabLogMeal) {
+    fabLogMeal.addEventListener('click', () => {
+      fabContainer.classList.remove('open');
+      if (showToast) showToast('Log Meal coming soon!', 'info');
+      else alert('Log Meal — coming soon!');
+    });
+  }
+  if (fabLogWeight) {
+    fabLogWeight.addEventListener('click', () => {
+      fabContainer.classList.remove('open');
+      if (showToast) showToast('Log Weight coming soon!', 'info');
+      else alert('Log Weight — coming soon!');
+    });
+  }
+}
+
+// ---- Sidebar Mobile Toggle ----
+function setupSidebar() {
+  const hamburger = document.getElementById('hamburgerBtn');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+
+  if (!hamburger || !sidebar) return;
+
+  hamburger.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    overlay?.classList.toggle('visible');
+    document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+  });
+
+  overlay?.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('visible');
+    document.body.style.overflow = '';
+  });
+
+  // Close sidebar on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+      sidebar.classList.remove('open');
+      overlay?.classList.remove('visible');
+      document.body.style.overflow = '';
+    }
+  });
+}
+
+// ---- Active Nav Highlighting ----
+function setupNavHighlight() {
+  const navItems = document.querySelectorAll('.nav-item');
+  const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
+
+  navItems.forEach((item) => {
+    const href = item.getAttribute('href');
+    if (href === currentPage) {
+      item.classList.add('active');
+    } else if (item.classList.contains('active') && href !== currentPage && href !== 'dashboard.html') {
+      // Only remove if it's not the default dashboard active
+    }
+
+    // Hover ripple effect
+    item.addEventListener('mouseenter', () => {
+      if (!item.classList.contains('active')) {
+        item.style.transition = 'all 0.25s ease';
+      }
+    });
+  });
+}
+
+// ---- Start Workout Button ----
+const startBtn = document.getElementById('startWorkoutBtn');
+if (startBtn) {
+  startBtn.addEventListener('click', () => {
+    startBtn.innerHTML = '<i data-lucide="loader-2" class="animate-pulse"></i> Loading…';
+    startBtn.disabled = true;
+    startBtn.style.opacity = '0.7';
+    initLucide();
+
+    setTimeout(() => {
+      startBtn.innerHTML = '<i data-lucide="play"></i> Start Workout';
+      startBtn.disabled = false;
+      startBtn.style.opacity = '1';
+      initLucide();
+
+      if (showToast) showToast('Workout page coming soon!', 'info');
+      else alert('Workout feature — coming soon!');
+    }, 1500);
+  });
+}

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FitForge — Your Personal Fitness Journey, Without a Trainer</title>
+  <meta name="description" content="AI-powered workout plans, diet tracking, and streak monitoring — all personalized to your BMI and fitness goals. No trainer needed." />
+  <meta property="og:title" content="FitForge — Personal Fitness Journey" />
+  <meta property="og:description" content="AI-powered workout plans, diet tracking, and streak monitoring — all personalized to your BMI and fitness goals." />
+  <meta property="og:type" content="website" />
+  <link rel="stylesheet" href="styles/globals.css" />
+  <link rel="stylesheet" href="styles/landing.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <!-- ========== NAVBAR ========== -->
+  <nav class="navbar glass" id="navbar">
+    <div class="navbar-inner container">
+      <a href="index.html" class="navbar-logo">
+        <span class="logo-icon">🏋️</span>
+        <span class="logo-text">Fit<span class="text-gradient">Forge</span></span>
+      </a>
+      <div class="navbar-links hide-mobile">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#pricing">Pricing</a>
+      </div>
+      <div class="navbar-actions">
+        <a href="login.html" class="btn btn-ghost" id="nav-login-btn">Login</a>
+        <a href="login.html" class="btn btn-primary" id="nav-cta-btn">Get Started</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ========== HERO SECTION ========== -->
+  <section class="hero" id="hero">
+    <div class="hero-bg">
+      <div class="hero-blob hero-blob-1"></div>
+      <div class="hero-blob hero-blob-2"></div>
+      <div class="hero-blob hero-blob-3"></div>
+    </div>
+    <div class="container hero-content">
+      <h1 class="hero-headline animate-fade-in-up">
+        Your Personal <span class="text-gradient">Fitness Journey</span>,<br/>
+        Without a Trainer
+      </h1>
+      <p class="hero-subtitle animate-fade-in-up delay-1">
+        AI-powered workout plans, diet tracking, and streak monitoring — all personalized to your BMI and fitness goals.
+      </p>
+      <div class="hero-ctas animate-fade-in-up delay-2">
+        <a href="login.html" class="btn btn-primary btn-lg">Start Free Today</a>
+        <a href="#features" class="btn btn-secondary btn-lg">Learn More</a>
+      </div>
+      <div class="hero-stats animate-fade-in-up delay-3">
+        <div class="hero-stat">
+          <span class="hero-stat-value">10K+</span>
+          <span class="hero-stat-label">Users</span>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-value">500+</span>
+          <span class="hero-stat-label">Workouts</span>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-value">98%</span>
+          <span class="hero-stat-label">Satisfaction</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FEATURES SECTION ========== -->
+  <section class="features-section" id="features">
+    <div class="container">
+      <h2 class="section-title" data-reveal>Everything You Need to <span class="text-gradient">Get Fit</span></h2>
+      <p class="section-subtitle text-muted" data-reveal>Powerful features designed to replace expensive personal trainers.</p>
+      <div class="features-grid grid grid-3">
+        <div class="feature-card card" data-reveal>
+          <div class="feature-icon feature-icon-purple"><i data-lucide="dumbbell"></i></div>
+          <h4>Personalized Workouts</h4>
+          <p class="text-muted">Curated plans based on your BMI and fitness goals.</p>
+        </div>
+        <div class="feature-card card" data-reveal>
+          <div class="feature-icon feature-icon-teal"><i data-lucide="utensils-crossed"></i></div>
+          <h4>Smart Diet Plans</h4>
+          <p class="text-muted">Calorie-tracked meals tailored to your needs.</p>
+        </div>
+        <div class="feature-card card" data-reveal>
+          <div class="feature-icon feature-icon-fire"><i data-lucide="flame"></i></div>
+          <h4>Streak Tracking</h4>
+          <p class="text-muted">Stay motivated with daily streaks and badges.</p>
+        </div>
+        <div class="feature-card card" data-reveal>
+          <div class="feature-icon feature-icon-blue"><i data-lucide="trending-up"></i></div>
+          <h4>Progress Analytics</h4>
+          <p class="text-muted">Track weight, calories, and PRs over time.</p>
+        </div>
+        <div class="feature-card card" data-reveal>
+          <div class="feature-icon feature-icon-pink"><i data-lucide="play"></i></div>
+          <h4>YouTube Demos</h4>
+          <p class="text-muted">Follow along with video exercise guides.</p>
+        </div>
+        <div class="feature-card card" data-reveal>
+          <div class="feature-icon feature-icon-gold"><i data-lucide="trophy"></i></div>
+          <h4>Community</h4>
+          <p class="text-muted">Compete on leaderboards and share achievements.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== HOW IT WORKS ========== -->
+  <section class="how-section" id="how-it-works">
+    <div class="container">
+      <h2 class="section-title" data-reveal>How It <span class="text-gradient">Works</span></h2>
+      <p class="section-subtitle text-muted" data-reveal>Three simple steps to transform your fitness.</p>
+      <div class="steps-row">
+        <div class="step-card" data-reveal>
+          <div class="step-number">1</div>
+          <h4>Sign Up & Enter Your Stats</h4>
+          <p class="text-muted">Create your account and enter your height, weight, and fitness goals.</p>
+        </div>
+        <div class="step-connector"><div class="step-line"></div></div>
+        <div class="step-card" data-reveal>
+          <div class="step-number">2</div>
+          <h4>Get Your Personalized Plan</h4>
+          <p class="text-muted">We calculate your BMI and create workouts & diets tailored to you.</p>
+        </div>
+        <div class="step-connector"><div class="step-line"></div></div>
+        <div class="step-card" data-reveal>
+          <div class="step-number">3</div>
+          <h4>Track, Train & Transform</h4>
+          <p class="text-muted">Follow your plan, track streaks, and watch your progress soar.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== CTA SECTION ========== -->
+  <section class="cta-section">
+    <div class="container cta-content" data-reveal>
+      <h2>Ready to <span class="text-gradient">Transform</span> Your Body?</h2>
+      <p class="text-muted">Join thousands who are already crushing their fitness goals.</p>
+      <a href="login.html" class="btn btn-primary btn-lg">Get Started Free</a>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <span class="logo-icon">🏋️</span>
+        <span class="logo-text">Fit<span class="text-gradient">Forge</span></span>
+        <p class="text-muted" style="margin-top:8px; font-size:var(--text-sm);">Your personal fitness companion.</p>
+      </div>
+      <div class="footer-links">
+        <a href="#">About</a>
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Contact</a>
+      </div>
+      <p class="footer-copy text-muted">&copy; 2024 FitForge. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Initialize icons + scroll animations -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) lucide.createIcons();
+
+      // Scroll reveal
+      const reveals = document.querySelectorAll('[data-reveal]');
+      if (reveals.length) {
+        const obs = new IntersectionObserver((entries) => {
+          entries.forEach(e => {
+            if (e.isIntersecting) {
+              e.target.classList.add('revealed');
+              obs.unobserve(e.target);
+            }
+          });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+        reveals.forEach(el => obs.observe(el));
+      }
+
+      // Navbar scroll effect
+      const navbar = document.getElementById('navbar');
+      window.addEventListener('scroll', () => {
+        navbar.classList.toggle('navbar-scrolled', window.scrollY > 40);
+      });
+    });
+  </script>
+</body>
+</html>
