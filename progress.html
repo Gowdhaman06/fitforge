@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Progress — FitForge</title>
+
+  <link rel="stylesheet" href="styles/globals.css" />
+  <link rel="stylesheet" href="styles/dashboard.css" />
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js for beautiful charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-lg);
+      margin-bottom: var(--space-2xl);
+    }
+    
+    .metric-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      text-align: center;
+    }
+    
+    .metric-value {
+      font-size: var(--text-3xl);
+      font-weight: 800;
+      font-family: var(--font-heading);
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+    }
+
+    .metric-label {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .chart-container {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-2xl);
+      position: relative;
+    }
+
+    .chart-wrapper {
+      height: 300px;
+      width: 100%;
+    }
+
+    /* History List */
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-md) var(--space-lg);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+    }
+
+    .history-left {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+
+    .history-icon {
+      width: 40px; height: 40px;
+      background: rgba(108, 92, 231, 0.1);
+      color: var(--accent-primary);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .history-title { font-weight: 600; margin-bottom: 4px; }
+    .history-date { font-size: var(--text-xs); color: var(--text-tertiary); }
+    .history-value { font-weight: 700; color: var(--success); }
+  </style>
+</head>
+<body>
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="sidebar glass" id="sidebar">
+    <div class="sidebar-logo">
+      <span class="sidebar-logo-icon">🏋️</span>
+      <span class="sidebar-logo-text">Fit<span class="text-gradient">Forge</span></span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item" data-page="dashboard"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+      <a href="workouts.html" class="nav-item" data-page="workouts"><i data-lucide="dumbbell"></i><span>Workouts</span></a>
+      <a href="diet.html" class="nav-item" data-page="diet"><i data-lucide="utensils-crossed"></i><span>Diet Plans</span></a>
+      <a href="streaks.html" class="nav-item" data-page="streaks"><i data-lucide="flame"></i><span>Streaks</span></a>
+      <a href="progress.html" class="nav-item active" data-page="progress"><i data-lucide="trending-up"></i><span>Progress</span></a>
+      <a href="leaderboard.html" class="nav-item" data-page="leaderboard"><i data-lucide="trophy"></i><span>Leaderboard</span></a>
+    </nav>
+    <div class="divider"></div>
+  </aside>
+
+  <!-- ========== MAIN CONTENT ========== -->
+  <main class="dashboard-main" id="dashboardMain">
+    
+    <div class="page-header" style="margin-bottom: var(--space-xl)">
+      <h1 class="text-gradient">Your Progress</h1>
+      <p class="text-muted">Track your body metrics and workout history over time.</p>
+    </div>
+
+    <!-- Metrics Grid -->
+    <div class="metrics-grid animate-fade-in-up">
+      <div class="metric-card">
+        <div class="metric-value">-2.4 kg</div>
+        <div class="metric-label">Weight Changed</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">24</div>
+        <div class="metric-label">Total Workouts</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">12.5k</div>
+        <div class="metric-label">Kcal Burned</div>
+      </div>
+    </div>
+
+    <!-- Weight Chart -->
+    <div class="chart-container animate-fade-in-up delay-1">
+      <h3 style="margin-bottom: 16px">Weight Tracker (Last 30 Days)</h3>
+      <div class="chart-wrapper">
+        <canvas id="weightChart"></canvas>
+      </div>
+    </div>
+
+    <h3 style="margin-bottom: var(--space-md)">Recent Activity</h3>
+    <div class="history-list animate-fade-in-up delay-2">
+      
+      <div class="history-item">
+        <div class="history-left">
+          <div class="history-icon"><i data-lucide="dumbbell"></i></div>
+          <div>
+            <div class="history-title">Full Body Strength</div>
+            <div class="history-date">Today, 8:45 AM</div>
+          </div>
+        </div>
+        <div class="history-value">+380 kcal</div>
+      </div>
+
+      <div class="history-item">
+        <div class="history-left">
+          <div class="history-icon" style="background: rgba(46, 204, 113, 0.1); color: var(--success)"><i data-lucide="scale"></i></div>
+          <div>
+            <div class="history-title">Logged Weight</div>
+            <div class="history-date">Yesterday, 7:00 AM</div>
+          </div>
+        </div>
+        <div class="history-value" style="color: var(--text-primary)">70.5 kg</div>
+      </div>
+
+      <div class="history-item">
+        <div class="history-left">
+          <div class="history-icon" style="background: rgba(243, 156, 18, 0.1); color: var(--warning)"><i data-lucide="flame"></i></div>
+          <div>
+            <div class="history-title">HIIT Fat Burner</div>
+            <div class="history-date">June 16, 6:30 PM</div>
+          </div>
+        </div>
+        <div class="history-value">+450 kcal</div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script type="module">
+    if (window.lucide) lucide.createIcons();
+
+    // Chart.js Configuration
+    const ctx = document.getElementById('weightChart').getContext('2d');
+    
+    Chart.defaults.color = 'rgba(255, 255, 255, 0.6)';
+    Chart.defaults.font.family = "'Inter', sans-serif";
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Now'],
+        datasets: [{
+          label: 'Weight (kg)',
+          data: [72.9, 72.1, 71.5, 71.0, 70.5],
+          borderColor: '#6c5ce7',
+          backgroundColor: 'rgba(108, 92, 231, 0.2)',
+          borderWidth: 3,
+          pointBackgroundColor: '#00cec9',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(18, 18, 26, 0.9)',
+            titleFont: { size: 13 },
+            bodyFont: { size: 14, weight: 'bold' },
+            padding: 12,
+            displayColors: false,
+            callbacks: {
+              label: function(context) { return context.parsed.y + ' kg'; }
+            }
+          }
+        },
+        scales: {
+          y: {
+            min: 69,
+            max: 74,
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            border: { display: false }
+          },
+          x: {
+            grid: { display: false },
+            border: { display: false }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

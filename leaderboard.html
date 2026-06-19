@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leaderboard — FitForge</title>
+
+  <link rel="stylesheet" href="styles/globals.css" />
+  <link rel="stylesheet" href="styles/dashboard.css" />
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    /* Podium Layout */
+    .podium-container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: var(--space-md);
+      margin: var(--space-3xl) 0;
+      height: 250px;
+    }
+
+    .podium-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 120px;
+    }
+
+    .podium-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--bg-tertiary);
+      border: 3px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .podium-item.rank-1 .podium-avatar { border-color: #f1c40f; box-shadow: 0 0 20px rgba(241, 196, 15, 0.4); width: 80px; height: 80px; font-size: 32px; }
+    .podium-item.rank-2 .podium-avatar { border-color: #bdc3c7; }
+    .podium-item.rank-3 .podium-avatar { border-color: #cd7f32; }
+
+    .podium-name {
+      font-weight: 700;
+      margin-bottom: 4px;
+      text-align: center;
+    }
+
+    .podium-score {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .podium-step {
+      width: 100%;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-bottom: none;
+      border-radius: var(--radius-md) var(--radius-md) 0 0;
+      display: flex;
+      justify-content: center;
+      padding-top: 16px;
+      font-family: var(--font-heading);
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text-tertiary);
+      position: relative;
+    }
+
+    .podium-step::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 4px;
+    }
+
+    .podium-item.rank-1 .podium-step { height: 140px; background: rgba(241, 196, 15, 0.05); }
+    .podium-item.rank-1 .podium-step::before { background: #f1c40f; }
+    
+    .podium-item.rank-2 .podium-step { height: 100px; background: rgba(189, 195, 199, 0.05); }
+    .podium-item.rank-2 .podium-step::before { background: #bdc3c7; }
+    
+    .podium-item.rank-3 .podium-step { height: 70px; background: rgba(205, 127, 50, 0.05); }
+    .podium-item.rank-3 .podium-step::before { background: #cd7f32; }
+
+    /* Leaderboard List */
+    .leaderboard-list {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      margin-bottom: var(--space-2xl);
+    }
+
+    .lb-header {
+      display: grid;
+      grid-template-columns: 60px 1fr 100px;
+      padding: 16px 24px;
+      background: rgba(10, 10, 15, 0.6);
+      border-bottom: 1px solid var(--glass-border);
+      font-size: var(--text-xs);
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .lb-row {
+      display: grid;
+      grid-template-columns: 60px 1fr 100px;
+      padding: 16px 24px;
+      align-items: center;
+      border-bottom: 1px solid var(--glass-border);
+      transition: background 0.2s;
+    }
+
+    .lb-row:last-child { border-bottom: none; }
+    .lb-row:hover { background: rgba(108, 92, 231, 0.05); }
+
+    .lb-row.is-user {
+      background: rgba(108, 92, 231, 0.1);
+      border-left: 3px solid var(--accent-primary);
+    }
+
+    .lb-rank {
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .lb-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+    }
+
+    .lb-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--bg-tertiary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+
+    .lb-score {
+      font-weight: 700;
+      color: var(--accent-secondary);
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="sidebar glass" id="sidebar">
+    <div class="sidebar-logo">
+      <span class="sidebar-logo-icon">🏋️</span>
+      <span class="sidebar-logo-text">Fit<span class="text-gradient">Forge</span></span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item" data-page="dashboard"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+      <a href="workouts.html" class="nav-item" data-page="workouts"><i data-lucide="dumbbell"></i><span>Workouts</span></a>
+      <a href="diet.html" class="nav-item" data-page="diet"><i data-lucide="utensils-crossed"></i><span>Diet Plans</span></a>
+      <a href="streaks.html" class="nav-item" data-page="streaks"><i data-lucide="flame"></i><span>Streaks</span></a>
+      <a href="progress.html" class="nav-item" data-page="progress"><i data-lucide="trending-up"></i><span>Progress</span></a>
+      <a href="leaderboard.html" class="nav-item active" data-page="leaderboard"><i data-lucide="trophy"></i><span>Leaderboard</span></a>
+    </nav>
+    <div class="divider"></div>
+  </aside>
+
+  <!-- ========== MAIN CONTENT ========== -->
+  <main class="dashboard-main" id="dashboardMain">
+    
+    <div class="page-header">
+      <h1 class="text-gradient">Global Leaderboard</h1>
+      <p class="text-muted">Compete with the community. Ranked by current active streak.</p>
+    </div>
+
+    <!-- Podium -->
+    <div class="podium-container animate-fade-in-up">
+      <!-- Rank 2 -->
+      <div class="podium-item rank-2">
+        <div class="podium-avatar">👩</div>
+        <div class="podium-name">Sarah</div>
+        <div class="podium-score">45 Days</div>
+        <div class="podium-step">2</div>
+      </div>
+      
+      <!-- Rank 1 -->
+      <div class="podium-item rank-1">
+        <div class="podium-avatar">🧔</div>
+        <div class="podium-name">Marcus</div>
+        <div class="podium-score">52 Days</div>
+        <div class="podium-step">1</div>
+      </div>
+      
+      <!-- Rank 3 -->
+      <div class="podium-item rank-3">
+        <div class="podium-avatar">🧑</div>
+        <div class="podium-name">David</div>
+        <div class="podium-score">38 Days</div>
+        <div class="podium-step">3</div>
+      </div>
+    </div>
+
+    <!-- Leaderboard List -->
+    <div class="leaderboard-list animate-fade-in-up delay-1">
+      <div class="lb-header">
+        <div>Rank</div>
+        <div>Athlete</div>
+        <div style="text-align: right">Streak</div>
+      </div>
+      
+      <div class="lb-row">
+        <div class="lb-rank">4</div>
+        <div class="lb-user"><div class="lb-avatar">👱‍♀️</div> Emma W.</div>
+        <div class="lb-score">31 Days</div>
+      </div>
+      
+      <div class="lb-row">
+        <div class="lb-rank">5</div>
+        <div class="lb-user"><div class="lb-avatar">👨‍🦱</div> Chris P.</div>
+        <div class="lb-score">28 Days</div>
+      </div>
+      
+      <div class="lb-row">
+        <div class="lb-rank">6</div>
+        <div class="lb-user"><div class="lb-avatar">👩‍🦰</div> Anna K.</div>
+        <div class="lb-score">24 Days</div>
+      </div>
+      
+      <div class="lb-row">
+        <div class="lb-rank">7</div>
+        <div class="lb-user"><div class="lb-avatar">🧔‍♂️</div> James T.</div>
+        <div class="lb-score">19 Days</div>
+      </div>
+      
+      <div class="lb-row is-user">
+        <div class="lb-rank">8</div>
+        <div class="lb-user"><div class="lb-avatar">👤</div> You</div>
+        <div class="lb-score">12 Days</div>
+      </div>
+      
+      <div class="lb-row">
+        <div class="lb-rank">9</div>
+        <div class="lb-user"><div class="lb-avatar">👱‍♂️</div> Mark R.</div>
+        <div class="lb-score">10 Days</div>
+      </div>
+      
+      <div class="lb-row">
+        <div class="lb-rank">10</div>
+        <div class="lb-user"><div class="lb-avatar">👩‍🦳</div> Lisa M.</div>
+        <div class="lb-score">8 Days</div>
+      </div>
+    </div>
+
+  </main>
+
+  <script type="module">
+    if (window.lucide) lucide.createIcons();
+  </script>
+</body>
+</html>

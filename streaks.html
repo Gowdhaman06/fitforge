@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Streaks — FitForge</title>
+
+  <link rel="stylesheet" href="styles/globals.css" />
+  <link rel="stylesheet" href="styles/dashboard.css" />
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    .streak-hero {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-2xl);
+      text-align: center;
+      margin-bottom: var(--space-xl);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .streak-hero::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(243, 156, 18, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .flame-icon {
+      font-size: 5rem;
+      line-height: 1;
+      margin-bottom: var(--space-md);
+      display: inline-block;
+      animation: pulseFlame 2s infinite ease-in-out;
+      filter: drop-shadow(0 0 20px rgba(243, 156, 18, 0.4));
+    }
+
+    @keyframes pulseFlame {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1) rotate(5deg); }
+      100% { transform: scale(1); }
+    }
+
+    .streak-count {
+      font-size: var(--text-5xl);
+      font-family: var(--font-heading);
+      font-weight: 800;
+      color: var(--warning);
+      margin-bottom: 4px;
+    }
+
+    /* Week Calendar */
+    .week-calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: var(--space-sm);
+      margin-bottom: var(--space-2xl);
+    }
+
+    .day-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg) var(--space-sm);
+      text-align: center;
+      transition: all var(--transition-fast);
+    }
+
+    .day-card.active {
+      background: rgba(243, 156, 18, 0.1);
+      border-color: rgba(243, 156, 18, 0.4);
+      box-shadow: 0 0 15px rgba(243, 156, 18, 0.1);
+    }
+
+    .day-name {
+      font-size: var(--text-xs);
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .day-status {
+      font-size: 1.5rem;
+    }
+
+    /* Badges Grid */
+    .badges-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: var(--space-lg);
+    }
+
+    .badge-card {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      text-align: center;
+      transition: all var(--transition-base);
+    }
+
+    .badge-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--glass-highlight);
+    }
+
+    .badge-icon-lg {
+      font-size: 3rem;
+      margin-bottom: var(--space-md);
+      display: inline-block;
+    }
+
+    .badge-card.locked {
+      opacity: 0.5;
+      filter: grayscale(1);
+    }
+
+    .badge-card.locked .badge-icon-lg {
+      opacity: 0.3;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="sidebar glass" id="sidebar">
+    <div class="sidebar-logo">
+      <span class="sidebar-logo-icon">🏋️</span>
+      <span class="sidebar-logo-text">Fit<span class="text-gradient">Forge</span></span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item" data-page="dashboard"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+      <a href="workouts.html" class="nav-item" data-page="workouts"><i data-lucide="dumbbell"></i><span>Workouts</span></a>
+      <a href="diet.html" class="nav-item" data-page="diet"><i data-lucide="utensils-crossed"></i><span>Diet Plans</span></a>
+      <a href="streaks.html" class="nav-item active" data-page="streaks"><i data-lucide="flame"></i><span>Streaks</span></a>
+      <a href="progress.html" class="nav-item" data-page="progress"><i data-lucide="trending-up"></i><span>Progress</span></a>
+      <a href="leaderboard.html" class="nav-item" data-page="leaderboard"><i data-lucide="trophy"></i><span>Leaderboard</span></a>
+    </nav>
+    <div class="divider"></div>
+  </aside>
+
+  <!-- ========== MAIN CONTENT ========== -->
+  <main class="dashboard-main" id="dashboardMain">
+    
+    <div class="page-header" style="margin-bottom: var(--space-xl)">
+      <h1 class="text-gradient">Your Streaks</h1>
+      <p class="text-muted">Consistency is the key to results. Keep the fire burning!</p>
+    </div>
+
+    <!-- Hero Streak -->
+    <div class="streak-hero animate-fade-in-up">
+      <div class="flame-icon">🔥</div>
+      <div class="streak-count">12 Days</div>
+      <p class="text-muted">You're on fire! 9 days until your next milestone.</p>
+    </div>
+
+    <h3 style="margin-bottom: var(--space-md)">This Week</h3>
+    
+    <!-- Week Calendar -->
+    <div class="week-calendar animate-fade-in-up delay-1">
+      <div class="day-card active"><div class="day-name">Mon</div><div class="day-status">🔥</div></div>
+      <div class="day-card active"><div class="day-name">Tue</div><div class="day-status">🔥</div></div>
+      <div class="day-card active"><div class="day-name">Wed</div><div class="day-status">🔥</div></div>
+      <div class="day-card active"><div class="day-name">Thu</div><div class="day-status">🔥</div></div>
+      <div class="day-card active"><div class="day-name">Fri</div><div class="day-status">🔥</div></div>
+      <div class="day-card"><div class="day-name">Sat</div><div class="day-status" style="opacity:0.2">🔥</div></div>
+      <div class="day-card"><div class="day-name">Sun</div><div class="day-status" style="opacity:0.2">🔥</div></div>
+    </div>
+
+    <h3 style="margin-bottom: var(--space-md)">Your Trophies</h3>
+
+    <!-- Badges Grid -->
+    <div class="badges-grid animate-fade-in-up delay-2">
+      
+      <div class="badge-card">
+        <div class="badge-icon-lg">🥉</div>
+        <h4>Bronze Streak</h4>
+        <p class="text-muted" style="font-size: 12px; margin-top: 4px">7 Days Active</p>
+      </div>
+
+      <div class="badge-card">
+        <div class="badge-icon-lg">💪</div>
+        <h4>First Workout</h4>
+        <p class="text-muted" style="font-size: 12px; margin-top: 4px">Complete a workout</p>
+      </div>
+
+      <div class="badge-card">
+        <div class="badge-icon-lg">🥗</div>
+        <h4>Clean Eater</h4>
+        <p class="text-muted" style="font-size: 12px; margin-top: 4px">Log 10 Meals</p>
+      </div>
+
+      <div class="badge-card locked">
+        <div class="badge-icon-lg">🥈</div>
+        <h4>Silver Streak</h4>
+        <p class="text-muted" style="font-size: 12px; margin-top: 4px">21 Days Active</p>
+      </div>
+
+      <div class="badge-card locked">
+        <div class="badge-icon-lg">🥇</div>
+        <h4>Gold Streak</h4>
+        <p class="text-muted" style="font-size: 12px; margin-top: 4px">30 Days Active</p>
+      </div>
+
+      <div class="badge-card locked">
+        <div class="badge-icon-lg">👑</div>
+        <h4>Fitness Royalty</h4>
+        <p class="text-muted" style="font-size: 12px; margin-top: 4px">100 Days Active</p>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script type="module">
+    if (window.lucide) lucide.createIcons();
+  </script>
+</body>
+</html>
