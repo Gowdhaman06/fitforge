@@ -2,23 +2,8 @@
 // FitForge — Dashboard Logic (ES Module)
 // ============================================
 
-// ---- Imports (gracefully handle missing modules) ----
-let supabase = null;
-let showToast = null;
-
-try {
-  const sbModule = await import('./supabase.js');
-  supabase = sbModule.supabase || sbModule.default;
-} catch {
-  console.warn('[FitForge] supabase.js not found — running in demo mode.');
-}
-
-try {
-  const appModule = await import('./app.js');
-  showToast = appModule.showToast;
-} catch {
-  console.warn('[FitForge] app.js not found — toast disabled.');
-}
+import { supabase } from './supabase.js';
+import { showToast } from './app.js';
 
 // ---- DOM Ready ----
 document.addEventListener('DOMContentLoaded', () => {
