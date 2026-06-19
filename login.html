@@ -40,7 +40,7 @@
       </div>
 
       <!-- ===== Sign In Form ===== -->
-      <form id="login-form" class="auth-form">
+      <form id="login-form" class="auth-form active">
         <div class="form-group">
           <label for="login-email">Email</label>
           <div class="input-icon-wrap">
@@ -75,7 +75,7 @@
       </form>
 
       <!-- ===== Sign Up Form ===== -->
-      <form id="signup-form" class="auth-form" style="display:none;">
+      <form id="signup-form" class="auth-form">
         <div class="form-group">
           <label for="signup-name">Full Name</label>
           <div class="input-icon-wrap">
@@ -160,8 +160,8 @@
 
     function switchTab(target) {
       tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === target));
-      loginForm.style.display = target === 'login' ? '' : 'none';
-      signupForm.style.display = target === 'signup' ? '' : 'none';
+      loginForm.classList.toggle('active', target === 'login');
+      signupForm.classList.toggle('active', target === 'signup');
     }
 
     tabs.forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
