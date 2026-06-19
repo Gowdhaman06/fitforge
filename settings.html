@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings — FitForge</title>
+
+  <link rel="stylesheet" href="styles/globals.css" />
+  <link rel="stylesheet" href="styles/dashboard.css" />
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    .settings-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .settings-card {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-2xl);
+      margin-bottom: var(--space-xl);
+    }
+
+    /* Avatar Upload */
+    .avatar-upload-container {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xl);
+      margin-bottom: var(--space-2xl);
+      padding-bottom: var(--space-xl);
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .avatar-preview {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: var(--glass-bg);
+      border: 3px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      color: var(--text-tertiary);
+      overflow: hidden;
+      position: relative;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .avatar-actions {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .btn-upload {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-upload input[type="file"] {
+      position: absolute;
+      top: 0; right: 0; bottom: 0; left: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    /* Form Grid */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-lg);
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .settings-form label {
+      display: block;
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .settings-form input, .settings-form select {
+      width: 100%;
+      background: rgba(10, 10, 15, 0.6);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      color: var(--text-primary);
+      font-size: var(--text-base);
+      transition: all var(--transition-fast);
+    }
+
+    .settings-form input:focus, .settings-form select:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+      outline: none;
+    }
+
+    .action-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-md);
+      margin-top: var(--space-2xl);
+    }
+
+    .btn-danger {
+      background: rgba(225, 112, 85, 0.1);
+      color: var(--danger);
+      border: 1px solid rgba(225, 112, 85, 0.3);
+    }
+
+    .btn-danger:hover {
+      background: rgba(225, 112, 85, 0.2);
+    }
+
+    @media (max-width: 640px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      .avatar-upload-container {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="sidebar glass" id="sidebar">
+    <div class="sidebar-logo">
+      <span class="sidebar-logo-icon">🏋️</span>
+      <span class="sidebar-logo-text">Fit<span class="text-gradient">Forge</span></span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item" data-page="dashboard"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+      <a href="workouts.html" class="nav-item" data-page="workouts"><i data-lucide="dumbbell"></i><span>Workouts</span></a>
+      <a href="diet.html" class="nav-item" data-page="diet"><i data-lucide="utensils-crossed"></i><span>Diet Plans</span></a>
+      <a href="streaks.html" class="nav-item" data-page="streaks"><i data-lucide="flame"></i><span>Streaks</span></a>
+      <a href="progress.html" class="nav-item" data-page="progress"><i data-lucide="trending-up"></i><span>Progress</span></a>
+      <a href="leaderboard.html" class="nav-item" data-page="leaderboard"><i data-lucide="trophy"></i><span>Leaderboard</span></a>
+    </nav>
+    <div class="divider"></div>
+
+    <div class="sidebar-profile">
+      <div class="avatar" id="sidebarAvatar"><span id="sidebarAvatarLetter">A</span></div>
+      <div class="sidebar-profile-info">
+        <span class="sidebar-profile-name" id="sidebarProfileName">Loading...</span>
+        <span class="sidebar-profile-role">Pro Member</span>
+      </div>
+      <a href="settings.html" class="btn-icon btn-ghost sidebar-settings active" data-tooltip="Settings">
+        <i data-lucide="settings"></i>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ========== MAIN CONTENT ========== -->
+  <main class="dashboard-main" id="dashboardMain">
+    
+    <div class="settings-container">
+      <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-xl)">
+        <div>
+          <h1 class="text-gradient">Profile Settings</h1>
+          <p class="text-muted">Update your details to keep your fitness plan accurate.</p>
+        </div>
+        <button id="btnLogout" class="btn btn-danger"><i data-lucide="log-out"></i> Logout</button>
+      </div>
+
+      <div class="settings-card animate-fade-in-up">
+        
+        <!-- Avatar Upload -->
+        <div class="avatar-upload-container">
+          <div class="avatar-preview" id="avatarPreview">A</div>
+          <div class="avatar-actions">
+            <button class="btn btn-secondary btn-upload">
+              <i data-lucide="camera"></i> Change Photo
+              <input type="file" id="avatarInput" accept="image/png, image/jpeg, image/webp" />
+            </button>
+            <p class="text-muted" style="font-size: 12px; margin-top: 4px">Max 2MB. JPEG, PNG, WEBP.</p>
+          </div>
+        </div>
+
+        <!-- Settings Form -->
+        <form id="settingsForm" class="settings-form form-grid">
+          
+          <div class="form-group full-width">
+            <label>Full Name</label>
+            <input type="text" id="fullName" placeholder="e.g. Alex Johnson" required />
+          </div>
+
+          <div class="form-group">
+            <label>Age</label>
+            <input type="number" id="age" min="13" max="120" required />
+          </div>
+
+          <div class="form-group">
+            <label>Gender</label>
+            <select id="gender" required>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Height (cm)</label>
+            <input type="number" id="height" min="100" max="250" required />
+          </div>
+
+          <div class="form-group">
+            <label>Weight (kg)</label>
+            <input type="number" id="weight" step="0.1" min="30" max="300" required />
+          </div>
+
+          <div class="form-group">
+            <label>Country</label>
+            <input type="text" id="country" placeholder="e.g. United States" />
+          </div>
+
+          <div class="form-group">
+            <label>State / Region</label>
+            <input type="text" id="state" placeholder="e.g. California" />
+          </div>
+
+          <div class="form-group full-width action-buttons">
+            <button type="button" class="btn btn-secondary" onclick="window.history.back()">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="btnSave"><i data-lucide="save"></i> Save Changes</button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </main>
+
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module" src="js/settings.js"></script>
+</body>
+</html>

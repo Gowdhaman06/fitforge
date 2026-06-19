@@ -90,7 +90,8 @@ async function checkAuth() {
     }
   } catch (err) {
     console.error('[FitForge] Auth check failed:', err);
-    populateMockProfile(); // Fallback to mock so UI doesn't break, but they should be redirected
+    alert('Auth check failed: ' + err.message);
+    populateMockProfile(); // Fallback to mock so UI doesn't break
   }
 }
 
@@ -103,7 +104,10 @@ function populateUserProfile(user) {
 }
 
 async function fetchUserStats(user) {
-  if (!supabase) return;
+  if (!supabase) {
+    alert('fetchUserStats: supabase is null');
+    return;
+  }
   try {
     const { data, error } = await supabase
       .from('profiles')
@@ -133,6 +137,23 @@ async function fetchUserStats(user) {
       }
     }
 
+    // Update sidebar name just in case the name was changed in settings
+    if (data.full_name) {
+      document.getElementById('sidebarProfileName').textContent = data.full_name;
+      const greetingName = document.getElementById('greetingName');
+      if (greetingName) greetingName.textContent = data.full_name.split(' ')[0];
+    }
+
+    // Render custom avatar if it exists
+    if (data.avatar_url) {
+      const sidebarAvatar = document.getElementById('sidebarAvatar');
+      if (sidebarAvatar) {
+        sidebarAvatar.style.backgroundImage = `url(${data.avatar_url})`;
+        sidebarAvatar.style.backgroundSize = 'cover';
+        sidebarAvatar.innerHTML = '';
+      }
+    }
+
     // You could also update daily_calories here if the DOM element has an ID
     // Re-trigger animations so the new targets are used
     animateCounters();
@@ -143,7 +164,7 @@ async function fetchUserStats(user) {
 }
 
 function populateMockProfile() {
-  setProfileUI('Alex Johnson', 'Alex');
+  setProfileUI('Demo User', 'Demo');
 }
 
 function setProfileUI(fullName, firstName) {
