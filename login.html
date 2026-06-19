@@ -34,9 +34,9 @@
       </div>
 
       <!-- Tab switcher -->
-      <div class="tabs" role="tablist" style="margin-bottom: 24px;">
-        <button class="tab active" data-tab="login" type="button">Sign In</button>
-        <button class="tab" data-tab="signup" type="button">Sign Up</button>
+      <div class="auth-tabs" role="tablist" style="margin-bottom: 24px;">
+        <button class="auth-tab active" data-tab="login" type="button">Sign In</button>
+        <button class="auth-tab" data-tab="signup" type="button">Sign Up</button>
       </div>
 
       <!-- ===== Sign In Form ===== -->
@@ -154,7 +154,7 @@
     });
 
     // ── Tab switching ──
-    const tabs = document.querySelectorAll('.tab');
+    const tabs = document.querySelectorAll('.auth-tab');
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
 
