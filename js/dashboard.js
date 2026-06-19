@@ -58,21 +58,39 @@ function initLucide() {
 // ---- Auth Check ----
 async function checkAuth() {
   if (!supabase) {
-    // Demo mode — populate mock profile
+    console.warn('[FitForge] Supabase client is null. Running in demo mode.');
     populateMockProfile();
     return;
   }
 
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      window.location.href = 'login.html';
-      return;
+    // Check current session first
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error) throw error;
+    
+    if (session) {
+      populateUserProfile(session.user);
+    } else {
+      // If no session, wait a brief moment to see if onAuthStateChange catches an OAuth redirect
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (session) {
+          populateUserProfile(session.user);
+        } else if (event === 'SIGNED_OUT' || !session) {
+          window.location.href = 'login.html';
+        }
+      });
+      
+      // Fallback redirect if still no session after 1 second
+      setTimeout(() => {
+        supabase.auth.getSession().then(({data}) => {
+          if (!data.session) window.location.href = 'login.html';
+        });
+      }, 1000);
     }
-    populateUserProfile(session.user);
   } catch (err) {
     console.error('[FitForge] Auth check failed:', err);
-    populateMockProfile();
+    populateMockProfile(); // Fallback to mock so UI doesn't break, but they should be redirected
   }
 }
 
