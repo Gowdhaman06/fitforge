@@ -137,18 +137,20 @@ async function fetchUserStats(user) {
       }
     }
 
-    // Update sidebar name just in case the name was changed in settings
-    if (data.full_name) {
-      document.getElementById('sidebarProfileName').textContent = data.full_name;
+    // Update sidebar name from auth metadata
+    const metadataName = user.user_metadata?.full_name;
+    if (metadataName) {
+      document.getElementById('sidebarProfileName').textContent = metadataName;
       const greetingName = document.getElementById('greetingName');
-      if (greetingName) greetingName.textContent = data.full_name.split(' ')[0];
+      if (greetingName) greetingName.textContent = metadataName.split(' ')[0];
     }
 
-    // Render custom avatar if it exists
-    if (data.avatar_url) {
+    // Render custom avatar if it exists in auth metadata
+    const avatarUrl = user.user_metadata?.avatar_url;
+    if (avatarUrl) {
       const sidebarAvatar = document.getElementById('sidebarAvatar');
       if (sidebarAvatar) {
-        sidebarAvatar.style.backgroundImage = `url(${data.avatar_url})`;
+        sidebarAvatar.style.backgroundImage = `url(${avatarUrl})`;
         sidebarAvatar.style.backgroundSize = 'cover';
         sidebarAvatar.innerHTML = '';
       }

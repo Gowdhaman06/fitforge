@@ -46,12 +46,12 @@ async function loadProfileData() {
       if (profile.gender) document.getElementById('gender').value = profile.gender;
       if (profile.height) document.getElementById('height').value = profile.height;
       if (profile.weight) document.getElementById('weight').value = profile.weight;
-      if (profile.country) document.getElementById('country').value = profile.country;
-      if (profile.state) document.getElementById('state').value = profile.state;
+      if (currentUser.user_metadata?.country) document.getElementById('country').value = currentUser.user_metadata.country;
+      if (currentUser.user_metadata?.state) document.getElementById('state').value = currentUser.user_metadata.state;
       
-      if (profile.avatar_url) {
-        currentAvatarBase64 = profile.avatar_url;
-        setAvatarPreview(profile.avatar_url);
+      if (currentUser.user_metadata?.avatar_url) {
+        currentAvatarBase64 = currentUser.user_metadata.avatar_url;
+        setAvatarPreview(currentUser.user_metadata.avatar_url);
       } else {
         setAvatarPreviewFallback(document.getElementById('fullName').value);
       }
@@ -184,29 +184,32 @@ function setupFormSubmit() {
     else if (bmiVal >= 25 && bmiVal < 30) category = 'Overweight';
     else if (bmiVal >= 30) category = 'Obese';
     
-    const updates = {
+    const profileUpdates = {
       id: currentUser.id,
-      full_name: fullName,
       age: parseInt(document.getElementById('age').value),
       gender: document.getElementById('gender').value,
       height: height,
       weight: weight,
-      country: document.getElementById('country').value,
-      state: document.getElementById('state').value,
       bmi: bmiVal,
       bmi_category: category,
-      avatar_url: currentAvatarBase64,
       updated_at: new Date()
     };
     
     try {
-      const { error } = await supabase.from('profiles').upsert(updates);
+      const { error } = await supabase.from('profiles').upsert(profileUpdates);
       if (error) throw error;
       
-      // Update Auth Metadata as well
-      await supabase.auth.updateUser({
-        data: { full_name: fullName }
+      // Update Auth Metadata for fields that don't exist in the SQL table
+      const { error: authError } = await supabase.auth.updateUser({
+        data: { 
+          full_name: fullName,
+          country: document.getElementById('country').value,
+          state: document.getElementById('state').value,
+          avatar_url: currentAvatarBase64
+        }
       });
+      
+      if (authError) throw authError;
       
       showToast('Profile updated successfully!', 'success');
       
