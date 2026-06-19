@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Diet Plans — FitForge</title>
+
+  <link rel="stylesheet" href="styles/globals.css" />
+  <link rel="stylesheet" href="styles/dashboard.css" />
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    .diet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-xl);
+      flex-wrap: wrap;
+      gap: var(--space-md);
+    }
+    
+    /* Calorie Summary Bar */
+    .cal-summary {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-2xl);
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: var(--space-xl);
+      align-items: center;
+    }
+    
+    @media (max-width: 768px) {
+      .cal-summary {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+      }
+    }
+    
+    .macro-col h4 {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+    
+    .macro-col .val {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: var(--text-lg);
+      margin-bottom: 8px;
+    }
+    
+    .macro-bar {
+      height: 6px;
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+    
+    .macro-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      width: 0%;
+      transition: width 1s ease-out;
+    }
+    
+    .fill-cal { background: var(--accent-gradient); }
+    .fill-pro { background: #3498db; }
+    .fill-car { background: #f39c12; }
+    .fill-fat { background: #e74c3c; }
+    
+    /* Meal Grid */
+    .meal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: var(--space-lg);
+      margin-bottom: var(--space-3xl);
+    }
+    
+    .meal-card {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--glass-border);
+      border-left: 4px solid var(--accent-primary);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      transition: all var(--transition-base);
+    }
+    
+    .meal-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .meal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: var(--space-md);
+    }
+    
+    .meal-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .meal-emoji { font-size: 1.5rem; }
+    .meal-title { font-weight: 700; font-size: var(--text-lg); }
+    
+    .macro-chips {
+      display: flex;
+      gap: 8px;
+      margin: 12px 0;
+      font-size: var(--text-xs);
+    }
+    
+    .ingredients {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-bottom: 16px;
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+    
+    /* Plan Templates */
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: var(--space-lg);
+    }
+    
+    .plan-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      text-align: center;
+      transition: all var(--transition-base);
+    }
+    
+    .plan-card:hover {
+      border-color: var(--accent-secondary);
+      box-shadow: 0 0 20px rgba(0, 206, 201, 0.1);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="sidebar glass" id="sidebar">
+    <div class="sidebar-logo">
+      <span class="sidebar-logo-icon">🏋️</span>
+      <span class="sidebar-logo-text">Fit<span class="text-gradient">Forge</span></span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item" data-page="dashboard"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+      <a href="workouts.html" class="nav-item" data-page="workouts"><i data-lucide="dumbbell"></i><span>Workouts</span></a>
+      <a href="diet.html" class="nav-item active" data-page="diet"><i data-lucide="utensils-crossed"></i><span>Diet Plans</span></a>
+      <a href="streaks.html" class="nav-item" data-page="streaks"><i data-lucide="flame"></i><span>Streaks</span></a>
+      <a href="progress.html" class="nav-item" data-page="progress"><i data-lucide="trending-up"></i><span>Progress</span></a>
+      <a href="leaderboard.html" class="nav-item" data-page="leaderboard"><i data-lucide="trophy"></i><span>Leaderboard</span></a>
+    </nav>
+    <div class="divider"></div>
+  </aside>
+
+  <!-- ========== MAIN CONTENT ========== -->
+  <main class="dashboard-main" id="dashboardMain">
+    
+    <div class="diet-header">
+      <div>
+        <h1 class="text-gradient">Diet & Nutrition</h1>
+        <p class="text-muted">Track your meals and macros.</p>
+      </div>
+      <div class="badge badge-teal" style="font-size: 14px; padding: 8px 16px;">
+        Daily Target: 2,200 kcal
+      </div>
+    </div>
+
+    <!-- Calorie Summary -->
+    <div class="cal-summary animate-fade-in-up">
+      <div class="macro-col">
+        <h4>Calories Consumed</h4>
+        <div class="val">1,620 <span style="font-size: 14px; color: var(--text-secondary)">/ 2,200</span></div>
+        <div class="macro-bar"><div class="macro-fill fill-cal" style="width: 74%"></div></div>
+      </div>
+      <div class="macro-col">
+        <h4>Protein</h4>
+        <div class="val">120g <span style="font-size: 12px; color: var(--text-secondary)">/ 150g</span></div>
+        <div class="macro-bar"><div class="macro-fill fill-pro" style="width: 80%"></div></div>
+      </div>
+      <div class="macro-col">
+        <h4>Carbs</h4>
+        <div class="val">180g <span style="font-size: 12px; color: var(--text-secondary)">/ 250g</span></div>
+        <div class="macro-bar"><div class="macro-fill fill-car" style="width: 72%"></div></div>
+      </div>
+      <div class="macro-col">
+        <h4>Fat</h4>
+        <div class="val">55g <span style="font-size: 12px; color: var(--text-secondary)">/ 70g</span></div>
+        <div class="macro-bar"><div class="macro-fill fill-fat" style="width: 78%"></div></div>
+      </div>
+    </div>
+
+    <h2 style="margin-bottom: var(--space-lg)">Today's Meal Plan</h2>
+
+    <!-- Meal Grid -->
+    <div class="meal-grid">
+      
+      <!-- Breakfast -->
+      <div class="meal-card animate-fade-in-up delay-1">
+        <div class="meal-header">
+          <div class="meal-title-wrap">
+            <span class="meal-emoji">🌅</span>
+            <span class="meal-title">Oatmeal & Berries</span>
+          </div>
+          <span class="badge badge-warning">420 kcal</span>
+        </div>
+        <div class="macro-chips">
+          <span class="chip" style="color: #3498db; border-color: #3498db">P: 15g</span>
+          <span class="chip" style="color: #f39c12; border-color: #f39c12">C: 65g</span>
+          <span class="chip" style="color: #e74c3c; border-color: #e74c3c">F: 12g</span>
+        </div>
+        <div class="ingredients">
+          Oats, blueberries, strawberries, honey, milk
+        </div>
+        <button class="btn btn-outline btn-block log-btn"><i data-lucide="check-circle"></i> Log Meal</button>
+      </div>
+
+      <!-- Lunch -->
+      <div class="meal-card animate-fade-in-up delay-2">
+        <div class="meal-header">
+          <div class="meal-title-wrap">
+            <span class="meal-emoji">☀️</span>
+            <span class="meal-title">Chicken Salad</span>
+          </div>
+          <span class="badge badge-warning">580 kcal</span>
+        </div>
+        <div class="macro-chips">
+          <span class="chip" style="color: #3498db; border-color: #3498db">P: 42g</span>
+          <span class="chip" style="color: #f39c12; border-color: #f39c12">C: 45g</span>
+          <span class="chip" style="color: #e74c3c; border-color: #e74c3c">F: 18g</span>
+        </div>
+        <div class="ingredients">
+          Chicken breast, quinoa, mixed greens, avocado, olive oil
+        </div>
+        <button class="btn btn-outline btn-block log-btn"><i data-lucide="check-circle"></i> Log Meal</button>
+      </div>
+
+      <!-- Snack -->
+      <div class="meal-card animate-fade-in-up delay-3">
+        <div class="meal-header">
+          <div class="meal-title-wrap">
+            <span class="meal-emoji">🍎</span>
+            <span class="meal-title">Protein Shake</span>
+          </div>
+          <span class="badge badge-warning">320 kcal</span>
+        </div>
+        <div class="macro-chips">
+          <span class="chip" style="color: #3498db; border-color: #3498db">P: 35g</span>
+          <span class="chip" style="color: #f39c12; border-color: #f39c12">C: 20g</span>
+          <span class="chip" style="color: #e74c3c; border-color: #e74c3c">F: 15g</span>
+        </div>
+        <div class="ingredients">
+          Whey protein, almond milk, almonds, banana
+        </div>
+        <button class="btn btn-outline btn-block log-btn"><i data-lucide="check-circle"></i> Log Meal</button>
+      </div>
+
+      <!-- Dinner -->
+      <div class="meal-card animate-fade-in-up delay-4">
+        <div class="meal-header">
+          <div class="meal-title-wrap">
+            <span class="meal-emoji">🌙</span>
+            <span class="meal-title">Salmon & Rice</span>
+          </div>
+          <span class="badge badge-warning">580 kcal</span>
+        </div>
+        <div class="macro-chips">
+          <span class="chip" style="color: #3498db; border-color: #3498db">P: 38g</span>
+          <span class="chip" style="color: #f39c12; border-color: #f39c12">C: 55g</span>
+          <span class="chip" style="color: #e74c3c; border-color: #e74c3c">F: 22g</span>
+        </div>
+        <div class="ingredients">
+          Salmon fillet, brown rice, broccoli, carrots, soy sauce
+        </div>
+        <button class="btn btn-outline btn-block log-btn"><i data-lucide="check-circle"></i> Log Meal</button>
+      </div>
+
+    </div>
+
+    <h2 style="margin-bottom: var(--space-lg)">Diet Templates</h2>
+    
+    <div class="plans-grid">
+      <div class="plan-card animate-fade-in-up delay-1">
+        <div style="font-size: 3rem; margin-bottom: 12px">🥗</div>
+        <h3>Clean Eating</h3>
+        <p class="text-muted" style="margin: 8px 0; font-size: var(--text-sm)">Focus on whole foods, perfect for weight loss.</p>
+        <div class="badge badge-purple" style="margin-bottom: 16px">1,800 kcal</div>
+        <button class="btn btn-secondary btn-block">Apply Plan</button>
+      </div>
+
+      <div class="plan-card animate-fade-in-up delay-2">
+        <div style="font-size: 3rem; margin-bottom: 12px">💪</div>
+        <h3>High Protein</h3>
+        <p class="text-muted" style="margin: 8px 0; font-size: var(--text-sm)">Maximized protein intake for muscle building.</p>
+        <div class="badge badge-purple" style="margin-bottom: 16px">2,500 kcal</div>
+        <button class="btn btn-secondary btn-block">Apply Plan</button>
+      </div>
+
+      <div class="plan-card animate-fade-in-up delay-3">
+        <div style="font-size: 3rem; margin-bottom: 12px">⚖️</div>
+        <h3>Balanced</h3>
+        <p class="text-muted" style="margin: 8px 0; font-size: var(--text-sm)">Even macro split for maintenance and health.</p>
+        <div class="badge badge-purple" style="margin-bottom: 16px">2,200 kcal</div>
+        <button class="btn btn-secondary btn-block">Apply Plan</button>
+      </div>
+    </div>
+
+  </main>
+
+  <div id="toast-container"></div>
+
+  <script type="module">
+    import { showToast } from './js/app.js';
+    
+    if (window.lucide) lucide.createIcons();
+
+    const logBtns = document.querySelectorAll('.log-btn');
+    logBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.classList.contains('btn-primary')) {
+          btn.classList.remove('btn-primary');
+          btn.classList.add('btn-outline');
+          btn.innerHTML = '<i data-lucide="check-circle"></i> Log Meal';
+        } else {
+          btn.classList.remove('btn-outline');
+          btn.classList.add('btn-primary');
+          btn.innerHTML = '<i data-lucide="check"></i> Logged';
+          showToast('Meal logged successfully! 🍽️', 'success');
+        }
+        if (window.lucide) lucide.createIcons();
+      });
+    });
+
+  </script>
+</body>
+</html>

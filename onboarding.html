@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BMI Onboarding — FitForge</title>
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="styles/globals.css" />
+  <link rel="stylesheet" href="styles/auth.css" />
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    .wizard-container {
+      max-width: 600px;
+      margin: 40px auto;
+      padding: var(--space-xl);
+    }
+    
+    .progress-bar-wrapper {
+      display: flex;
+      gap: 10px;
+      margin-bottom: var(--space-xl);
+    }
+    
+    .progress-segment {
+      flex: 1;
+      height: 6px;
+      background: var(--glass-bg);
+      border-radius: var(--radius-full);
+      transition: background 0.3s ease;
+    }
+    
+    .progress-segment.active {
+      background: var(--accent-gradient);
+    }
+    
+    .wizard-step {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+    
+    .wizard-step.active {
+      display: block;
+    }
+    
+    .radio-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: var(--space-md);
+      margin-top: var(--space-sm);
+    }
+    
+    .radio-card {
+      background: var(--bg-tertiary);
+      border: 2px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition-base);
+    }
+    
+    .radio-card:hover {
+      border-color: var(--glass-highlight);
+      transform: translateY(-2px);
+    }
+    
+    .radio-card.selected {
+      border-color: var(--accent-primary);
+      background: rgba(108, 92, 231, 0.1);
+      box-shadow: var(--shadow-glow-purple);
+    }
+    
+    .radio-card-icon {
+      font-size: 2rem;
+      margin-bottom: var(--space-sm);
+    }
+    
+    .bmi-gauge-container {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      margin: 0 auto var(--space-xl);
+    }
+    
+    .bmi-gauge {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+    
+    .bmi-gauge-bg {
+      fill: none;
+      stroke: var(--glass-border);
+      stroke-width: 12;
+    }
+    
+    .bmi-gauge-fill {
+      fill: none;
+      stroke: var(--accent-primary);
+      stroke-width: 12;
+      stroke-dasharray: 502; /* 2 * pi * 80 */
+      stroke-dashoffset: 502;
+      transition: stroke-dashoffset 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      stroke-linecap: round;
+    }
+    
+    .bmi-value-display {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .bmi-value-number {
+      font-family: var(--font-heading);
+      font-size: 3rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-md);
+      margin-bottom: var(--space-xl);
+    }
+    
+    .result-card {
+      background: var(--bg-tertiary);
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--glass-border);
+      text-align: center;
+    }
+    
+    .result-value {
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--accent-secondary);
+      margin-top: 4px;
+    }
+    
+    .wizard-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: var(--space-2xl);
+    }
+  </style>
+</head>
+<body>
+  
+  <div class="container page-content">
+    <div class="card glass wizard-container">
+      
+      <!-- Progress Bar -->
+      <div class="progress-bar-wrapper">
+        <div class="progress-segment active" id="seg-1"></div>
+        <div class="progress-segment" id="seg-2"></div>
+        <div class="progress-segment" id="seg-3"></div>
+      </div>
+      
+      <!-- STEP 1: Basic Info -->
+      <div class="wizard-step active" id="step-1">
+        <h2 class="text-gradient">About You</h2>
+        <p class="text-muted" style="margin-bottom: var(--space-xl)">Help us personalize your experience.</p>
+        
+        <div class="form-group" style="margin-bottom: var(--space-lg)">
+          <label>Age</label>
+          <input type="number" id="age" placeholder="e.g. 25" min="13" max="100" />
+        </div>
+        
+        <div class="form-group" style="margin-bottom: var(--space-lg)">
+          <label>Gender</label>
+          <div class="radio-cards" id="gender-cards">
+            <div class="radio-card" data-value="male">
+              <div class="radio-card-icon">👨</div>
+              <div>Male</div>
+            </div>
+            <div class="radio-card" data-value="female">
+              <div class="radio-card-icon">👩</div>
+              <div>Female</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: var(--space-lg)">
+          <label>Height (cm)</label>
+          <input type="number" id="height" placeholder="e.g. 175" min="100" max="250" />
+        </div>
+        
+        <div class="form-group" style="margin-bottom: var(--space-lg)">
+          <label>Weight (kg)</label>
+          <input type="number" id="weight" placeholder="e.g. 70" min="30" max="300" />
+        </div>
+        
+        <div class="wizard-footer">
+          <div></div> <!-- spacer -->
+          <button class="btn btn-primary" id="btn-next-1">Next Step <i data-lucide="arrow-right"></i></button>
+        </div>
+      </div>
+      
+      <!-- STEP 2: Goals -->
+      <div class="wizard-step" id="step-2">
+        <h2 class="text-gradient">Your Goals</h2>
+        <p class="text-muted" style="margin-bottom: var(--space-xl)">What do you want to achieve?</p>
+        
+        <div class="form-group" style="margin-bottom: var(--space-lg)">
+          <label>Primary Goal</label>
+          <div class="radio-cards" id="goal-cards">
+            <div class="radio-card" data-value="lose_weight">
+              <div class="radio-card-icon">🔥</div>
+              <div>Lose Weight</div>
+            </div>
+            <div class="radio-card" data-value="build_muscle">
+              <div class="radio-card-icon">💪</div>
+              <div>Build Muscle</div>
+            </div>
+            <div class="radio-card" data-value="stay_fit">
+              <div class="radio-card-icon">🧘</div>
+              <div>Stay Fit</div>
+            </div>
+            <div class="radio-card" data-value="gain_weight">
+              <div class="radio-card-icon">📈</div>
+              <div>Gain Weight</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: var(--space-lg)">
+          <label>Current Activity Level</label>
+          <select id="activity" style="padding: 12px">
+            <option value="sedentary">Sedentary (Little to no exercise)</option>
+            <option value="light">Lightly Active (1-3 days/week)</option>
+            <option value="moderate">Moderately Active (3-5 days/week)</option>
+            <option value="very">Very Active (6-7 days/week)</option>
+          </select>
+        </div>
+        
+        <div class="wizard-footer">
+          <button class="btn btn-secondary" id="btn-back-2"><i data-lucide="arrow-left"></i> Back</button>
+          <button class="btn btn-primary" id="btn-next-2">Calculate Results <i data-lucide="calculator"></i></button>
+        </div>
+      </div>
+      
+      <!-- STEP 3: Results -->
+      <div class="wizard-step" id="step-3">
+        <h2 class="text-gradient" style="text-align:center;">Your Results</h2>
+        <p class="text-muted" style="text-align:center; margin-bottom: var(--space-xl)">We've crafted a plan just for you.</p>
+        
+        <!-- BMI Gauge -->
+        <div class="bmi-gauge-container">
+          <svg class="bmi-gauge" viewBox="0 0 200 200">
+            <circle class="bmi-gauge-bg" cx="100" cy="100" r="80"></circle>
+            <circle class="bmi-gauge-fill" id="bmi-circle" cx="100" cy="100" r="80"></circle>
+          </svg>
+          <div class="bmi-value-display">
+            <div class="text-muted" style="font-size: var(--text-sm)">Your BMI</div>
+            <div class="bmi-value-number" id="bmi-value">0.0</div>
+            <div class="badge" id="bmi-badge" style="margin-top: 8px">Normal</div>
+          </div>
+        </div>
+        
+        <div class="results-grid">
+          <div class="result-card">
+            <div class="text-muted" style="font-size: var(--text-sm)">Daily Target</div>
+            <div class="result-value"><span id="tdee-value">0</span> kcal</div>
+          </div>
+          <div class="result-card">
+            <div class="text-muted" style="font-size: var(--text-sm)">Recommended</div>
+            <div class="result-value" id="plan-type" style="font-size: var(--text-base); color: var(--accent-primary);">Balanced</div>
+          </div>
+        </div>
+        
+        <div class="wizard-footer" style="justify-content: center;">
+          <button class="btn btn-primary btn-lg" id="btn-finish" style="width: 100%">Let's Go! 🚀</button>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { supabase, isSupabaseConfigured } from './js/supabase.js';
+    import { showToast } from './js/app.js';
+    
+    // UI Elements
+    const steps = [document.getElementById('step-1'), document.getElementById('step-2'), document.getElementById('step-3')];
+    const segments = [document.getElementById('seg-1'), document.getElementById('seg-2'), document.getElementById('seg-3')];
+    
+    // Data object
+    const userData = {
+      age: 0, gender: '', height: 0, weight: 0, goal: '', activity: ''
+    };
+    
+    // Setup Radio Cards
+    function setupRadioCards(containerId, dataKey) {
+      const cards = document.querySelectorAll(`#${containerId} .radio-card`);
+      cards.forEach(card => {
+        card.addEventListener('click', () => {
+          cards.forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+          userData[dataKey] = card.dataset.value;
+        });
+      });
+    }
+    
+    setupRadioCards('gender-cards', 'gender');
+    setupRadioCards('goal-cards', 'goal');
+    
+    // Navigation
+    function goToStep(index) {
+      steps.forEach((step, i) => {
+        step.classList.toggle('active', i === index);
+        if (i <= index) segments[i].classList.add('active');
+        else segments[i].classList.remove('active');
+      });
+      if (window.lucide) lucide.createIcons();
+    }
+    
+    // Step 1 -> 2
+    document.getElementById('btn-next-1').addEventListener('click', () => {
+      userData.age = parseFloat(document.getElementById('age').value);
+      userData.height = parseFloat(document.getElementById('height').value);
+      userData.weight = parseFloat(document.getElementById('weight').value);
+      
+      if (!userData.age || !userData.gender || !userData.height || !userData.weight) {
+        showToast('Please fill in all details', 'warning');
+        return;
+      }
+      goToStep(1);
+    });
+    
+    // Step 2 -> Back
+    document.getElementById('btn-back-2').addEventListener('click', () => goToStep(0));
+    
+    // Step 2 -> 3 (Calculate)
+    document.getElementById('btn-next-2').addEventListener('click', () => {
+      userData.activity = document.getElementById('activity').value;
+      if (!userData.goal || !userData.activity) {
+        showToast('Please select your goals', 'warning');
+        return;
+      }
+      
+      calculateResults();
+      goToStep(2);
+    });
+    
+    function calculateResults() {
+      // BMI
+      const heightM = userData.height / 100;
+      const bmi = userData.weight / (heightM * heightM);
+      const bmiVal = parseFloat(bmi.toFixed(1));
+      
+      document.getElementById('bmi-value').innerText = bmiVal;
+      
+      const badge = document.getElementById('bmi-badge');
+      const circle = document.getElementById('bmi-circle');
+      let color = 'var(--success)';
+      let category = 'Normal';
+      let offsetPct = 0.5; // halfway
+      
+      if (bmiVal < 18.5) { color = 'var(--info)'; category = 'Underweight'; offsetPct = 0.25; }
+      else if (bmiVal >= 25 && bmiVal < 30) { color = 'var(--warning)'; category = 'Overweight'; offsetPct = 0.75; }
+      else if (bmiVal >= 30) { color = 'var(--danger)'; category = 'Obese'; offsetPct = 0.95; }
+      
+      badge.innerText = category;
+      badge.style.backgroundColor = `color-mix(in srgb, ${color} 15%, transparent)`;
+      badge.style.color = color;
+      badge.style.borderColor = `color-mix(in srgb, ${color} 30%, transparent)`;
+      circle.style.stroke = color;
+      
+      // Animate gauge
+      setTimeout(() => {
+        const circumference = 502;
+        const offset = circumference - (offsetPct * circumference);
+        circle.style.strokeDashoffset = offset;
+      }, 100);
+      
+      // BMR & TDEE
+      let bmr = (10 * userData.weight) + (6.25 * userData.height) - (5 * userData.age);
+      bmr += (userData.gender === 'male') ? 5 : -161;
+      
+      const actMult = { 'sedentary': 1.2, 'light': 1.375, 'moderate': 1.55, 'very': 1.725 };
+      let tdee = bmr * actMult[userData.activity];
+      
+      if (userData.goal === 'lose_weight') tdee -= 500;
+      if (userData.goal === 'gain_weight' || userData.goal === 'build_muscle') tdee += 300;
+      
+      userData.daily_calories = Math.round(tdee);
+      document.getElementById('tdee-value').innerText = userData.daily_calories.toLocaleString();
+      
+      const planTypes = {
+        'lose_weight': 'Fat Loss',
+        'build_muscle': 'Hypertrophy',
+        'stay_fit': 'Maintenance',
+        'gain_weight': 'Mass Builder'
+      };
+      document.getElementById('plan-type').innerText = planTypes[userData.goal];
+    }
+    
+    // Finish
+    document.getElementById('btn-finish').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-finish');
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-2" class="animate-pulse"></i> Saving...';
+      if (window.lucide) lucide.createIcons();
+      
+      if (!isSupabaseConfigured()) {
+        showToast('Demo mode - redirecting to dashboard', 'success');
+        setTimeout(() => window.location.href = 'dashboard.html', 1000);
+        return;
+      }
+      
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          window.location.href = 'login.html';
+          return;
+        }
+        
+        const { error } = await supabase.from('profiles').upsert({
+          id: session.user.id,
+          age: userData.age,
+          gender: userData.gender,
+          height: userData.height,
+          weight: userData.weight,
+          fitness_goal: userData.goal,
+          activity_level: userData.activity,
+          daily_calories: userData.daily_calories,
+          bmi: parseFloat(document.getElementById('bmi-value').innerText),
+          bmi_category: document.getElementById('bmi-badge').innerText,
+          updated_at: new Date()
+        });
+        
+        if (error) throw error;
+        window.location.href = 'dashboard.html';
+      } catch (err) {
+        showToast('Error saving profile: ' + err.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = 'Try Again';
+      }
+    });
+
+  </script>
+</body>
+</html>
