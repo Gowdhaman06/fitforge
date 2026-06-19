@@ -110,10 +110,12 @@ async function fetchUserStats(user) {
     const bmiCounter = document.getElementById('statBMI');
     if (bmiCounter) {
       bmiCounter.dataset.target = data.bmi;
+      bmiCounter.textContent = data.bmi; // Directly set it to ensure it shows!
+      
       // Also update the badge next to it
-      const bmiBadge = bmiCounter.closest('.stat-content').querySelector('.badge');
+      const bmiBadge = bmiCounter.closest('.stat-content')?.querySelector('.badge');
       if (bmiBadge) {
-        bmiBadge.textContent = data.bmi_category;
+        bmiBadge.textContent = data.bmi_category || 'Normal';
         bmiBadge.className = 'badge'; // reset
         if (data.bmi_category === 'Underweight') bmiBadge.classList.add('badge-info');
         else if (data.bmi_category === 'Overweight') bmiBadge.classList.add('badge-warning');
@@ -122,16 +124,18 @@ async function fetchUserStats(user) {
       }
     }
 
-    // Update sidebar name from auth metadata
-    const metadataName = user.user_metadata?.full_name;
+    // Update sidebar name from auth metadata OR profile data
+    const metadataName = user.user_metadata?.full_name || data.full_name;
     if (metadataName) {
-      document.getElementById('sidebarProfileName').textContent = metadataName;
+      const sidebarName = document.getElementById('sidebarProfileName');
+      if (sidebarName) sidebarName.textContent = metadataName;
+      
       const greetingName = document.getElementById('greetingName');
       if (greetingName) greetingName.textContent = metadataName.split(' ')[0];
     }
 
-    // Render custom avatar if it exists in auth metadata
-    const avatarUrl = user.user_metadata?.avatar_url;
+    // Render custom avatar if it exists in auth metadata OR profile
+    const avatarUrl = user.user_metadata?.avatar_url || data.avatar_url;
     if (avatarUrl) {
       const sidebarAvatar = document.getElementById('sidebarAvatar');
       if (sidebarAvatar) {
@@ -141,7 +145,6 @@ async function fetchUserStats(user) {
       }
     }
 
-    // You could also update daily_calories here if the DOM element has an ID
     // Re-trigger animations so the new targets are used
     animateCounters();
 
