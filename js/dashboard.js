@@ -99,6 +99,47 @@ function populateUserProfile(user) {
   const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
   const firstName = name.split(' ')[0];
   setProfileUI(name, firstName);
+  fetchUserStats(user);
+}
+
+async function fetchUserStats(user) {
+  if (!supabase) return;
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (error || !data || !data.bmi) {
+      // User hasn't completed onboarding, redirect them
+      window.location.href = 'onboarding.html';
+      return;
+    }
+
+    // Update Dashboard UI with real data
+    const bmiCounter = document.getElementById('statBMI');
+    if (bmiCounter) {
+      bmiCounter.dataset.target = data.bmi;
+      // Also update the badge next to it
+      const bmiBadge = bmiCounter.closest('.stat-content').querySelector('.badge');
+      if (bmiBadge) {
+        bmiBadge.textContent = data.bmi_category;
+        bmiBadge.className = 'badge'; // reset
+        if (data.bmi_category === 'Underweight') bmiBadge.classList.add('badge-info');
+        else if (data.bmi_category === 'Overweight') bmiBadge.classList.add('badge-warning');
+        else if (data.bmi_category === 'Obese') bmiBadge.classList.add('badge-danger');
+        else bmiBadge.classList.add('badge-success');
+      }
+    }
+
+    // You could also update daily_calories here if the DOM element has an ID
+    // Re-trigger animations so the new targets are used
+    animateCounters();
+
+  } catch (err) {
+    console.error('[FitForge] Failed to fetch user stats:', err);
+  }
 }
 
 function populateMockProfile() {
