@@ -24,6 +24,7 @@ function initDashboard() {
   checkAuth();
   setGreeting();
   setCurrentDate();
+  setupWeeklyChart();
   animateCounters();
   animateChartBars();
   animateCalorieBar();
@@ -203,6 +204,50 @@ function setCurrentDate() {
   const now = new Date();
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
   dateEl.textContent = now.toLocaleDateString('en-US', options);
+}
+
+// ---- Setup Weekly Chart ----
+function setupWeeklyChart() {
+  const chartGroups = document.querySelectorAll('.chart-bar-group');
+  if (chartGroups.length === 0) return;
+  
+  const today = new Date();
+  const dayIndex = today.getDay(); // 0 (Sun) to 6 (Sat)
+  // Convert to Mon=0, Sun=6
+  const adjustedDayIndex = dayIndex === 0 ? 6 : dayIndex - 1;
+  
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  
+  chartGroups.forEach((group, index) => {
+    // Reset classes
+    group.classList.remove('chart-today');
+    const bar = group.querySelector('.chart-bar');
+    if (bar) bar.classList.remove('chart-bar-today');
+    const label = group.querySelector('.chart-bar-label');
+    if (label) {
+      label.classList.remove('chart-label-today');
+      label.textContent = days[index];
+    }
+    const fill = group.querySelector('.chart-bar-fill');
+    if (fill) fill.className = 'chart-bar-fill'; // reset to base
+    
+    // Set today
+    if (index === adjustedDayIndex) {
+      group.classList.add('chart-today');
+      if (bar) bar.classList.add('chart-bar-today');
+      if (label) label.classList.add('chart-label-today');
+      if (fill) fill.classList.add('chart-bar-fill'); // Just standard fill
+    } else if (index > adjustedDayIndex) {
+      // Future days
+      if (fill) fill.classList.add('chart-bar-future');
+      const valueLabel = group.querySelector('.chart-bar-value');
+      if (valueLabel) valueLabel.textContent = '—';
+      if (bar) {
+        bar.style.setProperty('--bar-height', '3%');
+        bar.dataset.value = '0';
+      }
+    }
+  });
 }
 
 // ---- Animate Stat Counters ----
