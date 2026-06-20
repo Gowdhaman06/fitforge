@@ -118,11 +118,17 @@ const btnNext = document.getElementById('btnNextExercise');
 const btnFinish = document.getElementById('btnFinishAndLog');
 
 // ---- Initialization ----
-document.addEventListener('DOMContentLoaded', () => {
+function init() {
   setupEventListeners();
   renderWorkoutGrid();
   if (window.lucide) window.lucide.createIcons();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
 
 function setupEventListeners() {
   if (btnClose) {
