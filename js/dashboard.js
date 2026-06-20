@@ -7,6 +7,7 @@ import { showToast } from './app.js';
 
 let _initialized = false;
 let currentUser = null;
+let currentProfileData = null;
 
 // ---- DOM Ready ----
 document.addEventListener('DOMContentLoaded', () => {
@@ -34,6 +35,7 @@ function initDashboard() {
   setupSidebar();
   setupNavHighlight();
   setupWorkoutLogging();
+  setupLogWeight();
   initLucide();
 }
 
@@ -160,11 +162,12 @@ async function fetchUserStats(user) {
       .eq('id', user.id)
       .single();
 
-    if (error || !data || !data.bmi) {
-      // User hasn't completed onboarding, redirect them
-      window.location.href = 'onboarding.html';
+    if (error || !data) {
+      // Something went wrong fetching profile
       return;
     }
+    
+    currentProfileData = data;
 
     // ---- STREAK LOGIC ----
     const todayStr = new Date().toISOString().split('T')[0];
@@ -355,9 +358,12 @@ async function setupWeeklyChart() {
     const startStr = monday.toISOString().split('T')[0];
     const endStr = sunday.toISOString().split('T')[0];
     
+    let todayCalories = 0;
+    const todayStr = today.toISOString().split('T')[0];
+    
     const { data, error } = await supabase
       .from('workout_logs')
-      .select('completed_date')
+      .select('completed_date, calories_burned')
       .eq('user_id', currentUser.id)
       .gte('completed_date', startStr)
       .lte('completed_date', endStr);
@@ -368,7 +374,19 @@ async function setupWeeklyChart() {
         const logDayIndex = logDate.getDay();
         const logAdjusted = logDayIndex === 0 ? 6 : logDayIndex - 1;
         weeklyCounts[logAdjusted]++;
+        
+        // Add to today's calories if the log is from today
+        if (log.completed_date === todayStr) {
+          todayCalories += (log.calories_burned || 0);
+        }
       });
+    }
+    
+    // Set total calories stat for today
+    const caloriesCounter = document.getElementById('statCalories');
+    if (caloriesCounter) {
+      caloriesCounter.dataset.target = todayCalories;
+      caloriesCounter.textContent = todayCalories;
     }
   }
   
