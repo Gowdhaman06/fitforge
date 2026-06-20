@@ -74,7 +74,7 @@ function generateRandomWorkout(idNum) {
   }
 
   return {
-    id: \`workout-\${idNum}\`,
+    id: `workout-${idNum}`,
     title: title,
     type: type,
     duration: totalMinutes,
