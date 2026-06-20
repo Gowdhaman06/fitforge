@@ -452,6 +452,15 @@
   </script>
 
   <!-- Dashboard JS -->
-  <script type="module" src="js/dashboard.js?v=6"></script>
+  <script>
+    import('./js/dashboard.js?v=7')
+      .then(() => console.log('Dashboard module loaded'))
+      .catch((err) => {
+        const errorBox = document.createElement('div');
+        errorBox.style.cssText = 'position:fixed;top:0;left:0;right:0;background:red;color:white;z-index:99999;padding:20px;font-family:monospace;white-space:pre-wrap;';
+        errorBox.textContent = 'JAVASCRIPT CRASH DETECTED:\n' + (err.stack || err.message || err);
+        document.body.appendChild(errorBox);
+      });
+  </script>
 </body>
 </html>
