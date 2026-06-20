@@ -7,22 +7,22 @@ import { supabase } from './supabase.js';
 // ---- Built-in Workout Library (Procedurally Generated 500+ Workouts) ----
 
 const MASTER_EXERCISES = [
-  { name: 'Push-ups', desc: 'Keep core tight, lower body until chest touches floor.', gifUrl: 'assets/images/exercises/pushup.png', type: 'Strength' },
-  { name: 'Bodyweight Squats', desc: 'Chest up, push hips back.', gifUrl: 'assets/images/exercises/squat.png', type: 'Strength' },
-  { name: 'Plank', desc: 'Hold a straight line from head to heels.', gifUrl: 'assets/images/exercises/plank.png', type: 'Strength' },
-  { name: 'Jumping Jacks', desc: 'Fast pace! Arms straight, land softly.', gifUrl: 'assets/images/exercises/jumping_jacks.png', type: 'Cardio' },
-  { name: 'Mountain Climbers', desc: 'Drive knees to chest quickly.', gifUrl: 'assets/images/exercises/mountain_climber.png', type: 'Cardio' },
-  { name: 'Bicep Curls', desc: 'Keep elbows tucked, curl weight upwards.', gifUrl: 'assets/images/exercises/bicep_curl.png', type: 'Strength' },
+  { name: 'Push-ups', desc: 'Keep core tight, lower body until chest touches floor.', gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Push-Up.gif', type: 'Strength' },
+  { name: 'Bodyweight Squats', desc: 'Chest up, push hips back.', gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Bodyweight-Squat.gif', type: 'Strength' },
+  { name: 'Plank', desc: 'Hold a straight line from head to heels.', gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Front-Plank.gif', type: 'Strength' },
+  { name: 'Jumping Jacks', desc: 'Fast pace! Arms straight, land softly.', gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Jumping-Jacks.gif', type: 'Cardio' },
+  { name: 'Mountain Climbers', desc: 'Drive knees to chest quickly.', gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Mountain-Climber.gif', type: 'Cardio' },
+  { name: 'Bicep Curls', desc: 'Keep elbows tucked, curl weight upwards.', gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Curl.gif', type: 'Strength' },
   // Mapping variations to base 3D images
-  { name: 'Wide Push-ups', desc: 'Hands wider than shoulder width.', gifUrl: 'assets/images/exercises/pushup.png', type: 'Strength' },
-  { name: 'Diamond Push-ups', desc: 'Hands form a diamond under chest.', gifUrl: 'assets/images/exercises/pushup.png', type: 'Strength' },
-  { name: 'Jump Squats', desc: 'Explode upwards from the squat position.', gifUrl: 'assets/images/exercises/squat.png', type: 'HIIT' },
-  { name: 'Bulgarian Split Squats', desc: 'One foot elevated behind you.', gifUrl: 'assets/images/exercises/squat.png', type: 'Strength' },
-  { name: 'Side Plank', desc: 'Support body on one forearm.', gifUrl: 'assets/images/exercises/plank.png', type: 'Strength' },
-  { name: 'Spiderman Plank', desc: 'Bring knee to outside elbow.', gifUrl: 'assets/images/exercises/plank.png', type: 'Strength' },
-  { name: 'High Knees', desc: 'Drive knees up quickly.', gifUrl: 'assets/images/exercises/jumping_jacks.png', type: 'Cardio' },
-  { name: 'Burpees', desc: 'Drop to plank, pushup, jump up.', gifUrl: 'assets/images/exercises/mountain_climber.png', type: 'HIIT' },
-  { name: 'Hammer Curls', desc: 'Neutral grip curl.', gifUrl: 'assets/images/exercises/bicep_curl.png', type: 'Strength' }
+  { name: 'Wide Push-ups', desc: 'Hands wider than shoulder width.', gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Push-Up.gif', type: 'Strength' },
+  { name: 'Diamond Push-ups', desc: 'Hands form a diamond under chest.', gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Push-Up.gif', type: 'Strength' },
+  { name: 'Jump Squats', desc: 'Explode upwards from the squat position.', gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Bodyweight-Squat.gif', type: 'HIIT' },
+  { name: 'Bulgarian Split Squats', desc: 'One foot elevated behind you.', gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Bodyweight-Squat.gif', type: 'Strength' },
+  { name: 'Side Plank', desc: 'Support body on one forearm.', gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Front-Plank.gif', type: 'Strength' },
+  { name: 'Spiderman Plank', desc: 'Bring knee to outside elbow.', gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Front-Plank.gif', type: 'Strength' },
+  { name: 'High Knees', desc: 'Drive knees up quickly.', gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Jumping-Jacks.gif', type: 'Cardio' },
+  { name: 'Burpees', desc: 'Drop to plank, pushup, jump up.', gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Mountain-Climber.gif', type: 'HIIT' },
+  { name: 'Hammer Curls', desc: 'Neutral grip curl.', gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Curl.gif', type: 'Strength' }
 ];
 
 const CATEGORIES = ['Strength', 'Cardio', 'HIIT', 'Yoga', 'Flexibility'];
