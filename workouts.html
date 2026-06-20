@@ -230,117 +230,73 @@
 
   </main>
 
-  <!-- Video Modal -->
-  <div class="video-modal" id="videoModal">
-    <div class="video-content">
+  <!-- Workout Runner Modal -->
+  <div class="video-modal" id="workoutModal">
+    <div class="video-content" style="max-width: 600px;">
       <button class="video-close" id="closeModal"><i data-lucide="x"></i></button>
-      <div class="video-wrapper">
-        <iframe id="videoIframe" src="" allowfullscreen></iframe>
+      
+      <!-- Progress Bar -->
+      <div style="width: 100%; height: 6px; background: var(--glass-border); border-radius: 3px; overflow: hidden; margin-bottom: 20px;">
+        <div id="workoutProgress" style="height: 100%; width: 0%; background: var(--primary); transition: width 0.3s ease;"></div>
       </div>
-      <div class="video-details">
-        <h2 id="modalTitle">Workout Title</h2>
-        <div class="workout-stats" style="margin: 12px 0">
-          <span><i data-lucide="flame"></i> Est. Burn: 300 kcal</span>
-        </div>
-        <p class="text-muted">Follow along with the video. Focus on your form and breathe steadily.</p>
-        
-        <div class="exercise-list">
-          <h4 style="margin-bottom: 12px">Exercises</h4>
-          <div class="exercise-item"><span>Push-ups</span> <span class="text-muted">3 sets × 12 reps</span></div>
-          <div class="exercise-item"><span>Squats</span> <span class="text-muted">3 sets × 15 reps</span></div>
-          <div class="exercise-item"><span>Dumbbell Rows</span> <span class="text-muted">3 sets × 10 reps</span></div>
-          <div class="exercise-item"><span>Plank</span> <span class="text-muted">3 sets × 60 sec</span></div>
+
+      <div id="runnerContent">
+        <!-- Exercise GIF / Image -->
+        <div class="video-wrapper" style="background: var(--surface-light); border-radius: 16px; overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 250px; margin-bottom: 20px;">
+          <img id="exerciseGif" src="" alt="Exercise Animation" style="width: 100%; height: 100%; object-fit: contain; display: none;">
+          <div id="exercisePlaceholder" style="color: var(--text-muted);"><i data-lucide="image" style="width: 48px; height: 48px;"></i></div>
         </div>
         
-        <button class="btn btn-primary btn-block" style="margin-top: 24px" id="completeBtn">Mark as Completed</button>
+        <div class="video-details" style="padding: 0; text-align: center;">
+          <h2 id="exerciseName" style="font-size: 2rem; margin-bottom: 8px;">Exercise Name</h2>
+          
+          <div class="workout-stats" style="justify-content: center; margin-bottom: 24px;">
+            <span class="badge badge-purple" id="exerciseSets" style="font-size: 1.1rem; padding: 8px 16px;">Set 1 of 3</span>
+            <span class="badge" id="exerciseReps" style="font-size: 1.1rem; padding: 8px 16px;">12 Reps</span>
+          </div>
+          
+          <p id="exerciseDesc" class="text-muted" style="margin-bottom: 30px;">Focus on your form and breathe steadily.</p>
+          
+          <div style="display: flex; gap: 12px;">
+            <button class="btn btn-outline" id="btnPrevExercise" style="flex: 1;" disabled>
+              <i data-lucide="chevron-left"></i> Previous
+            </button>
+            <button class="btn btn-primary" id="btnNextExercise" style="flex: 2;">
+              Next Exercise <i data-lucide="chevron-right"></i>
+            </button>
+          </div>
+        </div>
       </div>
+
+      <!-- Workout Complete Screen (Hidden initially) -->
+      <div id="workoutComplete" style="display: none; text-align: center; padding: 40px 20px;">
+        <div style="width: 80px; height: 80px; background: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+          <i data-lucide="check" style="width: 40px; height: 40px; color: white;"></i>
+        </div>
+        <h2 style="font-size: 2.5rem; margin-bottom: 12px;" class="text-gradient">Workout Complete!</h2>
+        <p class="text-muted" style="margin-bottom: 32px; font-size: 1.1rem;">Incredible job. You've earned this.</p>
+        
+        <div style="display: flex; justify-content: center; gap: 24px; margin-bottom: 32px;">
+          <div style="text-align: center;">
+            <div style="font-size: 2rem; font-weight: bold; color: var(--text-main);" id="finalCalories">380</div>
+            <div class="text-muted" style="font-size: 0.9rem;">Calories Burned</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 2rem; font-weight: bold; color: var(--text-main);" id="finalDuration">45</div>
+            <div class="text-muted" style="font-size: 0.9rem;">Minutes</div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary w-100" id="btnFinishAndLog" style="font-size: 1.1rem; padding: 16px;">
+          <i data-lucide="save"></i> Save & Return to Dashboard
+        </button>
+      </div>
+
     </div>
   </div>
 
   <div id="toast-container"></div>
-
-  <script type="module">
-    import { showToast } from './js/app.js';
-    
-    const workouts = [
-      { title: "Full Body Strength", type: "Strength", dur: "45 min", cal: "380 cal", diff: "Intermediate", vid: "dQw4w9WgXcQ" },
-      { title: "HIIT Fat Burner", type: "HIIT", dur: "30 min", cal: "450 cal", diff: "Advanced", vid: "dQw4w9WgXcQ" },
-      { title: "Morning Yoga Flow", type: "Yoga", dur: "25 min", cal: "150 cal", diff: "Beginner", vid: "dQw4w9WgXcQ" },
-      { title: "Upper Body Push", type: "Strength", dur: "40 min", cal: "320 cal", diff: "Intermediate", vid: "dQw4w9WgXcQ" },
-      { title: "Cardio Blast", type: "Cardio", dur: "35 min", cal: "400 cal", diff: "Intermediate", vid: "dQw4w9WgXcQ" },
-      { title: "Core Crusher", type: "Strength", dur: "20 min", cal: "200 cal", diff: "Beginner", vid: "dQw4w9WgXcQ" },
-      { title: "Leg Day Destroyer", type: "Strength", dur: "50 min", cal: "420 cal", diff: "Advanced", vid: "dQw4w9WgXcQ" },
-      { title: "Stretching Routine", type: "Flexibility", dur: "15 min", cal: "80 cal", diff: "Beginner", vid: "dQw4w9WgXcQ" },
-      { title: "Full Body HIIT", type: "HIIT", dur: "40 min", cal: "500 cal", diff: "Advanced", vid: "dQw4w9WgXcQ" }
-    ];
-
-    const grid = document.getElementById('grid');
-    const typeColors = { "Strength": "purple", "HIIT": "danger", "Yoga": "teal", "Cardio": "warning", "Flexibility": "info" };
-
-    function renderWorkouts(filter = "all") {
-      grid.innerHTML = "";
-      workouts.filter(w => filter === "all" || w.type === filter).forEach((w, i) => {
-        const color = typeColors[w.type] || "primary";
-        grid.innerHTML += `
-          <div class="workout-card animate-fade-in-up" style="animation-delay: ${i * 0.1}s">
-            <div class="workout-type badge badge-${color}">${w.type}</div>
-            <h3 class="workout-title">${w.title}</h3>
-            <div class="workout-stats">
-              <span class="workout-stat"><i data-lucide="clock"></i> ${w.dur}</span>
-              <span class="workout-stat"><i data-lucide="flame"></i> ${w.cal}</span>
-            </div>
-            <div class="workout-muscles">
-              <span class="chip" style="font-size: 10px; padding: 4px 8px">${w.diff}</span>
-            </div>
-            <button class="btn btn-secondary start-btn" data-video="${w.vid}" data-title="${w.title}" style="margin-top: 16px">
-              Start
-            </button>
-          </div>
-        `;
-      });
-      if (window.lucide) lucide.createIcons();
-      attachModalListeners();
-    }
-
-    // Filter Chips
-    const filters = document.querySelectorAll('#filters .chip');
-    filters.forEach(f => {
-      f.addEventListener('click', () => {
-        filters.forEach(c => c.classList.remove('active'));
-        f.classList.add('active');
-        renderWorkouts(f.dataset.filter);
-      });
-    });
-
-    // Modal Logic
-    const modal = document.getElementById('videoModal');
-    const iframe = document.getElementById('videoIframe');
-    const modalTitle = document.getElementById('modalTitle');
-    
-    function attachModalListeners() {
-      document.querySelectorAll('.start-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          iframe.src = `https://www.youtube.com/embed/${btn.dataset.video}?autoplay=1`;
-          modalTitle.innerText = btn.dataset.title;
-          modal.classList.add('active');
-        });
-      });
-    }
-
-    document.getElementById('closeModal').addEventListener('click', () => {
-      modal.classList.remove('active');
-      iframe.src = "";
-    });
-
-    document.getElementById('completeBtn').addEventListener('click', () => {
-      modal.classList.remove('active');
-      iframe.src = "";
-      showToast('Workout marked as completed! 🔥', 'success');
-    });
-
-    // Initial render
-    renderWorkouts();
-
-  </script>
+  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/workouts.js?v=2"></script>
 </body>
 </html>
