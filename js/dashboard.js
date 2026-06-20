@@ -110,15 +110,14 @@ async function fetchUserStats(user) {
 
     // ---- STREAK LOGIC ----
     const todayStr = new Date().toISOString().split('T')[0];
-    let currentStreak = data.streak || 0;
+    let currentStreak = data.streak ? parseInt(data.streak) : 0;
     let lastLogin = data.last_login_date;
 
-    if (lastLogin !== todayStr) {
+    if (!lastLogin || lastLogin !== todayStr) {
       if (lastLogin) {
         // Calculate difference in days
         const lastDate = new Date(lastLogin);
         const todayDate = new Date(todayStr);
-        // Reset time to midnight to accurately compare dates
         lastDate.setHours(0, 0, 0, 0);
         todayDate.setHours(0, 0, 0, 0);
         
@@ -127,7 +126,7 @@ async function fetchUserStats(user) {
         
         if (diffDays === 1) {
           currentStreak += 1; // Logged in yesterday
-        } else {
+        } else if (diffDays > 1) {
           currentStreak = 1; // Missed a day or more, reset
         }
       } else {
@@ -143,13 +142,17 @@ async function fetchUserStats(user) {
       });
       
       data.streak = currentStreak;
+      data.last_login_date = todayStr;
     }
+
+    // Ensure it's never 0 if they've logged in at least once
+    if (currentStreak === 0) currentStreak = 1;
 
     // Update Dashboard UI with real data
     const streakCounter = document.getElementById('statStreak');
     if (streakCounter) {
-      streakCounter.dataset.target = data.streak || 0;
-      streakCounter.textContent = data.streak || 0;
+      streakCounter.dataset.target = currentStreak;
+      streakCounter.textContent = currentStreak; // Force update DOM directly
     }
 
     const bmiCounter = document.getElementById('statBMI');
