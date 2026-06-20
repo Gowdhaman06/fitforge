@@ -5,6 +5,8 @@
 import { supabase } from './supabase.js';
 import { showToast } from './app.js';
 
+let _initialized = false;
+
 // ---- DOM Ready ----
 document.addEventListener('DOMContentLoaded', () => {
   initDashboard();
@@ -15,8 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
 if (document.readyState !== 'loading') {
   initDashboard();
 }
-
-let _initialized = false;
 
 function initDashboard() {
   if (_initialized) return;
