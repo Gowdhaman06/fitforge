@@ -180,7 +180,7 @@ function updateRunnerUI() {
   const exercise = currentWorkout.exercises[currentExerciseIndex];
   
   exName.textContent = exercise.name;
-  exSets.textContent = \`Set 1 of \${exercise.sets}\`;
+  exSets.textContent = `Set 1 of ${exercise.sets}`;
   exReps.textContent = exercise.reps;
   exDesc.textContent = exercise.desc;
   
@@ -210,7 +210,7 @@ function updateRunnerUI() {
   
   // Update Progress
   const progressPercent = ((currentExerciseIndex) / currentWorkout.exercises.length) * 100;
-  progressFill.style.width = \`\${progressPercent}%\`;
+  progressFill.style.width = `${progressPercent}%`;
   
   if (window.lucide) window.lucide.createIcons();
 }
