@@ -18,21 +18,21 @@ const WORKOUT_DB = [
         sets: 3,
         reps: '12 Reps',
         desc: 'Keep your core tight and lower your body until your chest almost touches the floor.',
-        gifUrl: 'https://media.giphy.com/media/xT8qBvH1pAhtfSx52U/giphy.gif'
+        gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Push-Up.gif'
       },
       {
         name: 'Bodyweight Squats',
         sets: 3,
         reps: '15 Reps',
         desc: 'Keep your chest up and push your hips back as if sitting in a chair.',
-        gifUrl: 'https://media.giphy.com/media/3o7TKrEzvLbgzGhiaA/giphy.gif'
+        gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Bodyweight-Squat.gif'
       },
       {
         name: 'Plank',
         sets: 3,
         reps: '60 Seconds',
         desc: 'Hold a straight line from your head to your heels. Breathe steadily.',
-        gifUrl: 'https://media.giphy.com/media/26ufjhE0A30R1w9dC/giphy.gif'
+        gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Front-Plank.gif'
       }
     ]
   },
@@ -48,14 +48,14 @@ const WORKOUT_DB = [
         sets: 4,
         reps: '45 Seconds',
         desc: 'Fast pace! Keep your arms straight and land softly on the balls of your feet.',
-        gifUrl: 'https://media.giphy.com/media/l41lO5GfPZ2lA3zK8/giphy.gif'
+        gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Jumping-Jacks.gif'
       },
       {
         name: 'Mountain Climbers',
         sets: 4,
         reps: '45 Seconds',
         desc: 'Drive your knees to your chest quickly while maintaining a solid plank position.',
-        gifUrl: 'https://media.giphy.com/media/xT8qBsA21iGv1LhCgg/giphy.gif'
+        gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Mountain-Climber.gif'
       }
     ]
   }
