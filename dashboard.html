@@ -417,7 +417,41 @@
     </button>
   </div>
 
+  <!-- Fallback Script: Guaranteed to run instantly -->
+  <script>
+    window.addEventListener('error', function(e) {
+      console.error('Global Error:', e.error || e.message);
+    });
+
+    // 1. Immediately set the date so it is always correct
+    const dateEl = document.getElementById('topbarDate');
+    if (dateEl) {
+      dateEl.textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    // 2. Immediately try to load profile from localStorage
+    const localName = localStorage.getItem('fitforge_username');
+    const localAvatar = localStorage.getItem('fitforge_avatar');
+    if (localName) {
+      const firstName = localName.split(' ')[0];
+      const sName = document.getElementById('sidebarProfileName');
+      const gName = document.getElementById('greetingName');
+      const sLetter = document.getElementById('sidebarAvatarLetter');
+      if (sName) sName.textContent = localName;
+      if (gName) gName.textContent = firstName;
+      if (sLetter) sLetter.textContent = firstName.charAt(0).toUpperCase();
+    }
+    if (localAvatar) {
+      const sAvatar = document.getElementById('sidebarAvatar');
+      if (sAvatar) {
+        sAvatar.style.backgroundImage = `url(${localAvatar})`;
+        sAvatar.style.backgroundSize = 'cover';
+        sAvatar.innerHTML = '';
+      }
+    }
+  </script>
+
   <!-- Dashboard JS -->
-  <script type="module" src="js/dashboard.js?v=5"></script>
+  <script type="module" src="js/dashboard.js?v=6"></script>
 </body>
 </html>
