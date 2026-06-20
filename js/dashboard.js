@@ -73,6 +73,9 @@ function setupWorkoutLogging() {
     if (error) {
       console.error(error);
       showToast('Failed to log workout.', 'error');
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+      if (window.lucide) window.lucide.createIcons();
     } else {
       showToast('Workout logged successfully! 🎉', 'success');
       // Refresh the chart
@@ -85,11 +88,13 @@ function setupWorkoutLogging() {
         workoutsCounter.dataset.target = current + 1;
         workoutsCounter.textContent = current + 1;
       }
+      
+      // Change button state to completed
+      btn.innerHTML = '<i data-lucide="check-circle"></i> Completed';
+      btn.style.background = 'var(--success)';
+      btn.style.boxShadow = 'none';
+      if (window.lucide) window.lucide.createIcons();
     }
-    
-    btn.innerHTML = originalText;
-    btn.disabled = false;
-    if (window.lucide) window.lucide.createIcons();
   });
 }
 
@@ -368,6 +373,14 @@ async function setupWeeklyChart() {
   }
   
   const maxWorkouts = Math.max(...weeklyCounts, 1); // Avoid division by zero
+  const totalWeeklyWorkouts = weeklyCounts.reduce((a, b) => a + b, 0);
+  
+  // Set total workouts stat
+  const workoutsCounter = document.getElementById('statWorkouts');
+  if (workoutsCounter) {
+    workoutsCounter.dataset.target = totalWeeklyWorkouts;
+    workoutsCounter.textContent = totalWeeklyWorkouts;
+  }
   
   chartGroups.forEach((group, index) => {
     // Reset classes
