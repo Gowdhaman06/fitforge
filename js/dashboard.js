@@ -6,6 +6,7 @@ import { supabase } from './supabase.js';
 import { showToast } from './app.js';
 
 let _initialized = false;
+let currentUser = null;
 
 // ---- DOM Ready ----
 document.addEventListener('DOMContentLoaded', () => {
@@ -32,6 +33,7 @@ function initDashboard() {
   setupFAB();
   setupSidebar();
   setupNavHighlight();
+  setupWorkoutLogging();
   initLucide();
 }
 
@@ -40,6 +42,55 @@ function initLucide() {
   if (window.lucide) {
     window.lucide.createIcons();
   }
+}
+
+// ---- Setup Workout Logging ----
+function setupWorkoutLogging() {
+  const btn = document.getElementById('btnStartWorkout');
+  if (!btn) return;
+  
+  btn.addEventListener('click', async () => {
+    if (!currentUser) {
+      showToast('You must be logged in to log a workout.', 'warning');
+      return;
+    }
+    
+    btn.disabled = true;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Logging...';
+    if (window.lucide) window.lucide.createIcons();
+    
+    const todayStr = new Date().toISOString().split('T')[0];
+    
+    const { error } = await supabase.from('workout_logs').insert({
+      user_id: currentUser.id,
+      workout_name: 'Full Body Strength',
+      calories_burned: 380,
+      duration_minutes: 45,
+      completed_date: todayStr
+    });
+    
+    if (error) {
+      console.error(error);
+      showToast('Failed to log workout.', 'error');
+    } else {
+      showToast('Workout logged successfully! 🎉', 'success');
+      // Refresh the chart
+      setupWeeklyChart();
+      
+      // Try to increment the total workouts completed counter if it exists
+      const workoutsCounter = document.getElementById('statWorkouts');
+      if (workoutsCounter) {
+        let current = parseInt(workoutsCounter.dataset.target || 0);
+        workoutsCounter.dataset.target = current + 1;
+        workoutsCounter.textContent = current + 1;
+      }
+    }
+    
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+    if (window.lucide) window.lucide.createIcons();
+  });
 }
 
 // ---- Auth Check ----
@@ -57,11 +108,13 @@ async function checkAuth() {
     if (error) throw error;
     
     if (session) {
+      currentUser = session.user;
       populateUserProfile(session.user);
     } else {
       // If no session, wait a brief moment to see if onAuthStateChange catches an OAuth redirect
       supabase.auth.onAuthStateChange((event, session) => {
         if (session) {
+          currentUser = session.user;
           populateUserProfile(session.user);
         } else if (event === 'SIGNED_OUT' || !session) {
           window.location.href = 'login.html';
@@ -274,16 +327,47 @@ function setCurrentDate() {
 }
 
 // ---- Setup Weekly Chart ----
-function setupWeeklyChart() {
+async function setupWeeklyChart() {
   const chartGroups = document.querySelectorAll('.chart-bar-group');
   if (chartGroups.length === 0) return;
   
   const today = new Date();
   const dayIndex = today.getDay(); // 0 (Sun) to 6 (Sat)
-  // Convert to Mon=0, Sun=6
-  const adjustedDayIndex = dayIndex === 0 ? 6 : dayIndex - 1;
-  
+  const adjustedDayIndex = dayIndex === 0 ? 6 : dayIndex - 1; // Mon=0, Sun=6
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  
+  // Array to store workout counts per day of the week
+  let weeklyCounts = [0, 0, 0, 0, 0, 0, 0];
+  
+  // Only fetch real data if logged in
+  if (currentUser && supabase) {
+    // Calculate Monday and Sunday of this week
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - adjustedDayIndex);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    
+    const startStr = monday.toISOString().split('T')[0];
+    const endStr = sunday.toISOString().split('T')[0];
+    
+    const { data, error } = await supabase
+      .from('workout_logs')
+      .select('completed_date')
+      .eq('user_id', currentUser.id)
+      .gte('completed_date', startStr)
+      .lte('completed_date', endStr);
+      
+    if (!error && data) {
+      data.forEach(log => {
+        const logDate = new Date(log.completed_date);
+        const logDayIndex = logDate.getDay();
+        const logAdjusted = logDayIndex === 0 ? 6 : logDayIndex - 1;
+        weeklyCounts[logAdjusted]++;
+      });
+    }
+  }
+  
+  const maxWorkouts = Math.max(...weeklyCounts, 1); // Avoid division by zero
   
   chartGroups.forEach((group, index) => {
     // Reset classes
@@ -298,23 +382,40 @@ function setupWeeklyChart() {
     const fill = group.querySelector('.chart-bar-fill');
     if (fill) fill.className = 'chart-bar-fill'; // reset to base
     
-    // Set today
-    if (index === adjustedDayIndex) {
-      group.classList.add('chart-today');
-      if (bar) bar.classList.add('chart-bar-today');
-      if (label) label.classList.add('chart-label-today');
-      if (fill) fill.classList.add('chart-bar-fill'); // Just standard fill
-    } else if (index > adjustedDayIndex) {
+    const count = weeklyCounts[index];
+    const percentage = Math.min((count / maxWorkouts) * 100, 100);
+    const valueLabel = group.querySelector('.chart-bar-value');
+    
+    // Set values based on real data
+    if (index <= adjustedDayIndex) {
+      // Past or Today
+      if (valueLabel) valueLabel.textContent = count;
+      if (bar) {
+        // Height is at least 5% if there's no data so we see a tiny bar
+        bar.style.setProperty('--bar-height', count === 0 ? '5%' : percentage + '%');
+        bar.dataset.value = count === 0 ? '5' : percentage;
+      }
+    } else {
       // Future days
       if (fill) fill.classList.add('chart-bar-future');
-      const valueLabel = group.querySelector('.chart-bar-value');
       if (valueLabel) valueLabel.textContent = '—';
       if (bar) {
         bar.style.setProperty('--bar-height', '3%');
         bar.dataset.value = '0';
       }
     }
+    
+    // Highlight today
+    if (index === adjustedDayIndex) {
+      group.classList.add('chart-today');
+      if (bar) bar.classList.add('chart-bar-today');
+      if (label) label.classList.add('chart-label-today');
+      if (fill) fill.classList.add('chart-bar-fill'); // Ensure normal fill
+    }
   });
+  
+  // Re-trigger bar animations
+  animateChartBars();
 }
 
 // ---- Animate Stat Counters ----
