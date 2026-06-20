@@ -211,6 +211,12 @@ function setupFormSubmit() {
       
       if (authError) throw authError;
       
+      // Save locally for instant UI updates across the app
+      localStorage.setItem('fitforge_username', fullName);
+      if (currentAvatarBase64) {
+        localStorage.setItem('fitforge_avatar', currentAvatarBase64);
+      }
+      
       showToast('Profile updated successfully!', 'success');
       
       // Update sidebar immediately

@@ -8,6 +8,7 @@ import { showToast } from './app.js';
 // ---- DOM Ready ----
 document.addEventListener('DOMContentLoaded', () => {
   initDashboard();
+  loadProfileFromLocal();
 });
 
 // Also run immediately if DOM is already loaded
@@ -166,6 +167,26 @@ function setProfileUI(fullName, firstName) {
   if (greetingName) greetingName.textContent = firstName;
   if (sidebarName) sidebarName.textContent = fullName;
   if (sidebarLetter) sidebarLetter.textContent = firstName.charAt(0).toUpperCase();
+}
+
+// ---- LocalStorage Fallback ----
+function loadProfileFromLocal() {
+  const localName = localStorage.getItem('fitforge_username');
+  const localAvatar = localStorage.getItem('fitforge_avatar');
+
+  if (localName) {
+    const firstName = localName.split(' ')[0];
+    setProfileUI(localName, firstName);
+  }
+
+  if (localAvatar) {
+    const sidebarAvatar = document.getElementById('sidebarAvatar');
+    if (sidebarAvatar) {
+      sidebarAvatar.style.backgroundImage = `url(${localAvatar})`;
+      sidebarAvatar.style.backgroundSize = 'cover';
+      sidebarAvatar.innerHTML = '';
+    }
+  }
 }
 
 // ---- Time-based Greeting ----
