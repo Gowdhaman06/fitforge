@@ -108,7 +108,50 @@ async function fetchUserStats(user) {
       return;
     }
 
+    // ---- STREAK LOGIC ----
+    const todayStr = new Date().toISOString().split('T')[0];
+    let currentStreak = data.streak || 0;
+    let lastLogin = data.last_login_date;
+
+    if (lastLogin !== todayStr) {
+      if (lastLogin) {
+        // Calculate difference in days
+        const lastDate = new Date(lastLogin);
+        const todayDate = new Date(todayStr);
+        // Reset time to midnight to accurately compare dates
+        lastDate.setHours(0, 0, 0, 0);
+        todayDate.setHours(0, 0, 0, 0);
+        
+        const diffTime = todayDate - lastDate;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) {
+          currentStreak += 1; // Logged in yesterday
+        } else {
+          currentStreak = 1; // Missed a day or more, reset
+        }
+      } else {
+        currentStreak = 1; // First time logging in since tracking started
+      }
+      
+      // Save new streak to database
+      supabase.from('profiles').update({
+        streak: currentStreak,
+        last_login_date: todayStr
+      }).eq('id', user.id).then(({error}) => {
+        if (error) console.error('Failed to update streak:', error);
+      });
+      
+      data.streak = currentStreak;
+    }
+
     // Update Dashboard UI with real data
+    const streakCounter = document.getElementById('statStreak');
+    if (streakCounter) {
+      streakCounter.dataset.target = data.streak || 0;
+      streakCounter.textContent = data.streak || 0;
+    }
+
     const bmiCounter = document.getElementById('statBMI');
     if (bmiCounter) {
       bmiCounter.dataset.target = data.bmi;
