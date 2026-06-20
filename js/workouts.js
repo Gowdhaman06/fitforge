@@ -4,62 +4,96 @@
 
 import { supabase } from './supabase.js';
 
-// ---- Built-in Workout Library ----
-const WORKOUT_DB = [
-  {
-    id: 'full-body-strength',
-    title: 'Full Body Strength',
-    duration: 45,
-    calories: 380,
-    level: 'Intermediate',
-    exercises: [
-      {
-        name: 'Push-ups',
-        sets: 3,
-        reps: '12 Reps',
-        desc: 'Keep your core tight and lower your body until your chest almost touches the floor.',
-        gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Push-Up.gif'
-      },
-      {
-        name: 'Bodyweight Squats',
-        sets: 3,
-        reps: '15 Reps',
-        desc: 'Keep your chest up and push your hips back as if sitting in a chair.',
-        gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Bodyweight-Squat.gif'
-      },
-      {
-        name: 'Plank',
-        sets: 3,
-        reps: '60 Seconds',
-        desc: 'Hold a straight line from your head to your heels. Breathe steadily.',
-        gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Front-Plank.gif'
-      }
-    ]
-  },
-  {
-    id: 'hiit-cardio',
-    title: 'HIIT Cardio Blast',
-    duration: 20,
-    calories: 250,
-    level: 'Advanced',
-    exercises: [
-      {
-        name: 'Jumping Jacks',
-        sets: 4,
-        reps: '45 Seconds',
-        desc: 'Fast pace! Keep your arms straight and land softly on the balls of your feet.',
-        gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Jumping-Jacks.gif'
-      },
-      {
-        name: 'Mountain Climbers',
-        sets: 4,
-        reps: '45 Seconds',
-        desc: 'Drive your knees to your chest quickly while maintaining a solid plank position.',
-        gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Mountain-Climber.gif'
-      }
-    ]
-  }
+// ---- Built-in Workout Library (Procedurally Generated 500+ Workouts) ----
+
+const MASTER_EXERCISES = [
+  { name: 'Push-ups', desc: 'Keep core tight, lower body until chest touches floor.', gifUrl: 'assets/images/exercises/pushup.png', type: 'Strength' },
+  { name: 'Bodyweight Squats', desc: 'Chest up, push hips back.', gifUrl: 'assets/images/exercises/squat.png', type: 'Strength' },
+  { name: 'Plank', desc: 'Hold a straight line from head to heels.', gifUrl: 'assets/images/exercises/plank.png', type: 'Strength' },
+  { name: 'Jumping Jacks', desc: 'Fast pace! Arms straight, land softly.', gifUrl: 'assets/images/exercises/jumping_jacks.png', type: 'Cardio' },
+  { name: 'Mountain Climbers', desc: 'Drive knees to chest quickly.', gifUrl: 'assets/images/exercises/mountain_climber.png', type: 'Cardio' },
+  { name: 'Bicep Curls', desc: 'Keep elbows tucked, curl weight upwards.', gifUrl: 'assets/images/exercises/bicep_curl.png', type: 'Strength' },
+  // Mapping variations to base 3D images
+  { name: 'Wide Push-ups', desc: 'Hands wider than shoulder width.', gifUrl: 'assets/images/exercises/pushup.png', type: 'Strength' },
+  { name: 'Diamond Push-ups', desc: 'Hands form a diamond under chest.', gifUrl: 'assets/images/exercises/pushup.png', type: 'Strength' },
+  { name: 'Jump Squats', desc: 'Explode upwards from the squat position.', gifUrl: 'assets/images/exercises/squat.png', type: 'HIIT' },
+  { name: 'Bulgarian Split Squats', desc: 'One foot elevated behind you.', gifUrl: 'assets/images/exercises/squat.png', type: 'Strength' },
+  { name: 'Side Plank', desc: 'Support body on one forearm.', gifUrl: 'assets/images/exercises/plank.png', type: 'Strength' },
+  { name: 'Spiderman Plank', desc: 'Bring knee to outside elbow.', gifUrl: 'assets/images/exercises/plank.png', type: 'Strength' },
+  { name: 'High Knees', desc: 'Drive knees up quickly.', gifUrl: 'assets/images/exercises/jumping_jacks.png', type: 'Cardio' },
+  { name: 'Burpees', desc: 'Drop to plank, pushup, jump up.', gifUrl: 'assets/images/exercises/mountain_climber.png', type: 'HIIT' },
+  { name: 'Hammer Curls', desc: 'Neutral grip curl.', gifUrl: 'assets/images/exercises/bicep_curl.png', type: 'Strength' }
 ];
+
+const CATEGORIES = ['Strength', 'Cardio', 'HIIT', 'Yoga', 'Flexibility'];
+const LEVELS = ['Beginner', 'Intermediate', 'Advanced'];
+const ADJECTIVES = ['Blast', 'Crusher', 'Inferno', 'Shredder', 'Builder', 'Pump', 'Flow', 'Burner', 'Routine', 'Circuit'];
+
+function getRandomItem(arr, seed) {
+  // Simple seeded random to keep workouts consistent across refreshes
+  const x = Math.sin(seed++) * 10000;
+  return arr[Math.floor((x - Math.floor(x)) * arr.length)];
+}
+
+function generateRandomWorkout(idNum) {
+  const type = getRandomItem(CATEGORIES, idNum * 1);
+  const adj = getRandomItem(ADJECTIVES, idNum * 2);
+  const level = getRandomItem(LEVELS, idNum * 3);
+  
+  let title = '';
+  if (type === 'Strength') title = ['Upper Body', 'Lower Body', 'Core', 'Full Body', 'Arm'][Math.floor(Math.abs(Math.sin(idNum * 4)) * 5)] + ' ' + adj;
+  else title = type + ' ' + adj;
+
+  const numExercises = Math.floor(Math.abs(Math.sin(idNum * 5)) * 3) + 4;
+  const exercises = [];
+  let totalMinutes = 0;
+
+  for (let i = 0; i < numExercises; i++) {
+    let pool = MASTER_EXERCISES.filter(e => e.type === type);
+    if (pool.length === 0 || Math.abs(Math.sin(idNum * 6 + i)) > 0.7) pool = MASTER_EXERCISES;
+    
+    const ex = getRandomItem(pool, idNum * 7 + i);
+    const sets = Math.floor(Math.abs(Math.sin(idNum * 8 + i)) * 3) + 2; 
+    
+    let repsStr = '';
+    if (type === 'Cardio' || type === 'HIIT' || ex.name.includes('Plank')) {
+      repsStr = (Math.floor(Math.abs(Math.sin(idNum * 9 + i)) * 4) + 3) * 10 + ' Seconds';
+    } else {
+      repsStr = (Math.floor(Math.abs(Math.sin(idNum * 10 + i)) * 3) + 2) * 5 + ' Reps';
+    }
+    
+    exercises.push({
+      name: ex.name,
+      sets: sets,
+      reps: repsStr,
+      desc: ex.desc,
+      gifUrl: ex.gifUrl
+    });
+    
+    totalMinutes += (sets * 2);
+  }
+
+  return {
+    id: \`workout-\${idNum}\`,
+    title: title,
+    type: type,
+    duration: totalMinutes,
+    calories: totalMinutes * (Math.floor(Math.abs(Math.sin(idNum * 11)) * 4) + 6),
+    level: level,
+    exercises: exercises
+  };
+}
+
+const WORKOUT_DB = [];
+// Generate 500 workouts on the fly!
+for (let i = 1; i <= 500; i++) {
+  WORKOUT_DB.push(generateRandomWorkout(i));
+}
+
+// Pagination State
+let currentPage = 1;
+const WORKOUTS_PER_PAGE = 24;
+let activeFilter = 'all';
 
 // ---- Runner State ----
 let currentWorkout = null;
@@ -129,15 +163,48 @@ function setupEventListeners() {
   if (btnFinish) {
     btnFinish.addEventListener('click', logWorkoutAndReturn);
   }
+  // Pagination setup
+  const btnLoadMore = document.createElement('button');
+  btnLoadMore.className = 'btn btn-outline w-100';
+  btnLoadMore.style.marginTop = '2rem';
+  btnLoadMore.style.gridColumn = '1 / -1';
+  btnLoadMore.innerHTML = '<i data-lucide="chevron-down"></i> Load More Workouts';
+  btnLoadMore.addEventListener('click', () => {
+    currentPage++;
+    renderWorkoutGrid(true);
+  });
+  
+  // Attach filter listeners
+  const filters = document.querySelectorAll('#filters .chip');
+  if (filters) {
+    filters.forEach(f => {
+      f.addEventListener('click', () => {
+        filters.forEach(c => c.classList.remove('active'));
+        f.classList.add('active');
+        activeFilter = f.dataset.filter || 'all';
+        currentPage = 1;
+        renderWorkoutGrid();
+      });
+    });
+  }
 }
 
-function renderWorkoutGrid() {
+function renderWorkoutGrid(append = false) {
   const grid = document.getElementById('grid');
   if (!grid) return;
   
-  grid.innerHTML = '';
+  if (!append) grid.innerHTML = '';
   
-  WORKOUT_DB.forEach(w => {
+  let filtered = WORKOUT_DB;
+  if (activeFilter !== 'all') {
+    filtered = WORKOUT_DB.filter(w => w.type === activeFilter);
+  }
+  
+  const startIdx = (currentPage - 1) * WORKOUTS_PER_PAGE;
+  const endIdx = startIdx + WORKOUTS_PER_PAGE;
+  const pageItems = filtered.slice(startIdx, endIdx);
+  
+  pageItems.forEach(w => {
     const card = document.createElement('div');
     card.className = 'workout-card';
     card.innerHTML = `
@@ -157,6 +224,26 @@ function renderWorkoutGrid() {
     `;
     grid.appendChild(card);
   });
+  
+  // Handle Load More button
+  const oldBtn = document.getElementById('btnLoadMore');
+  if (oldBtn) oldBtn.remove();
+  
+  if (endIdx < filtered.length) {
+    const btnLoadMore = document.createElement('button');
+    btnLoadMore.id = 'btnLoadMore';
+    btnLoadMore.className = 'btn btn-outline w-100';
+    btnLoadMore.style.marginTop = '2rem';
+    btnLoadMore.style.gridColumn = '1 / -1';
+    btnLoadMore.innerHTML = '<i data-lucide="chevron-down"></i> Load More Workouts (' + (filtered.length - endIdx) + ' remaining)';
+    btnLoadMore.addEventListener('click', () => {
+      currentPage++;
+      renderWorkoutGrid(true);
+    });
+    grid.appendChild(btnLoadMore);
+  }
+  
+  if (window.lucide) window.lucide.createIcons();
 }
 
 function startRunner(workoutId) {
